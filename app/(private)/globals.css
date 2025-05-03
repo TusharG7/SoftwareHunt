@@ -115,7 +115,7 @@
   --brand-oxford-blue: #14213D;
   --brand-orange: #FCA311;
   --brand-night-black: #111010;
-
+  
   /* Shades of Oxford Blue */
   --brand-oxford-10: #DAE2F2;
   --brand-oxford-20: #B9C2D4;
@@ -181,6 +181,36 @@
   --brand-maya-80: #42BFFB;
   --brand-maya-90: #236084;
   --brand-maya-100: #04324D;
+  
+  /* Brand Palette Colors 1 */
+  --brand-indigo: #56047E;
+  --brand-magenta-dye: #C1096C;
+  --brand-jet-black: #2C2C2C;
+  --brand-platinum: #E5E5E5;
+
+  /* Shades of Indigo */
+  --brand-indigo-10: #F8EBFF;
+  --brand-indigo-20: #DDC5EA;
+  --brand-indigo-30: #C29ED4;
+  --brand-indigo-40: #A77BBF;
+  --brand-indigo-50: #8C51A9;
+  --brand-indigo-60: #712B94;
+  --brand-indigo-70: #56047E;
+  --brand-indigo-80: #450365;
+  --brand-indigo-90: #34034C;
+  --brand-indigo-100: #230233;
+
+  /* Shades of Magenta Dye */
+  --brand-magenta-dye-10: #FEEBF6;
+  --brand-magenta-dye-20: #F5C5DF;
+  --brand-magenta-dye-30: #EAA0C8;
+  --brand-magenta-dye-40: #E07AB1;
+  --brand-magenta-dye-50: #D6549A;
+  --brand-magenta-dye-60: #CB2F83;
+  --brand-magenta-dye-70: #C1096C;
+  --brand-magenta-dye-80: #920752;
+  --brand-magenta-dye-90: #620437;
+  --brand-magenta-dye-100: #33021D;
 
   /* Neutral Colors */
   --jet-black: #2C2C2C;
@@ -229,7 +259,7 @@
   --bg-danger-tertiary: #A31B0D; /* red.70 - Tertiary danger */
 
   /* *********************------Text Colors------****************** */
-
+  
   /* Primary and Secondary Text Colors */
   --fg-base: #000000; /* grey.100 - Primary text/icon color */
   --fg-muted: #757575; /* grey.60 - Medium emphasis text */

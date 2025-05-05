@@ -7,11 +7,13 @@ import { addNewSoftware } from "@/controllers/software.controller";
 
 export default function Step7Snapshots({
   formData,
+  onSuccess,
   setFormData,
   onBack,
   setShowForm,
 }: {
   formData: any;
+  onSuccess: () => void;
   setFormData: (val: any) => void;
   onBack: () => void;
   setShowForm: (val: boolean) => void;
@@ -106,6 +108,7 @@ export default function Step7Snapshots({
       if (result.success) {
         setShowForm(false);
         toast.success("Software added successfully!");
+        onSuccess();
       } else {
         toast.error(result.error || "Failed to add software.");
       }

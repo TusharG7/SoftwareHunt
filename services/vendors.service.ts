@@ -27,7 +27,7 @@ export async function checkVendorExistsByEmail(email: string): Promise<boolean> 
   }
 }
 
-export async function addNewVendor(data: VendorData & { companyDescription: string; yearFounded: string }): Promise<{ success: boolean; message: string }> {
+export async function addNewVendor(data: VendorData & { companyDescription: string; yearFounded: string }): Promise<{ success: boolean; message: string, vendor: any }> {
   const { name, email, website, password, companyDescription, yearFounded } = data;
 
   try {
@@ -39,14 +39,14 @@ export async function addNewVendor(data: VendorData & { companyDescription: stri
       .limit(1);
 
     if (existingVendor.length > 0) {
-      return { success: false, message: "Vendor with this email already exists." };
+      return { success: false, message: "Vendor with this email already exists.", vendor: null };
     }
 
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Insert the new vendor into the vendorTable
-    await db.insert(vendorTable).values({
+    const vendor = await db.insert(vendorTable).values({
       name,
       email,
       password: hashedPassword, // Save the hashed password
@@ -56,10 +56,10 @@ export async function addNewVendor(data: VendorData & { companyDescription: stri
       role: "VENDOR", // Default role for vendors
       createdAt: new Date(),
       updatedAt: new Date(),
-    });
+    }).returning();
 
     // Return a generic success message
-    return { success: true, message: "Vendor added successfully." };
+    return { success: true, message: "Vendor added successfully.", vendor: vendor[0] };
   } catch (error) {
     console.error("Error adding new vendor:", error);
     throw new Error("" + error);

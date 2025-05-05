@@ -19,10 +19,13 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { addNewVendor, checkVendorExistsByEmail, fetchAllVendor } from "@/controllers/vendors.controller"
+import AddSoftwareMultiStep from "../softwares/AddSoftwareForm"
 
 export function AddForm({ setAllVendors, setTotalCount, page, itemsPerPage }: { setAllVendors: any; setTotalCount: any, page: number, itemsPerPage: number }) {
   const isMobile = useIsMobile()
   const [step, setStep] = useState(1)
+  const [lastCreatedVendor, setLastCreatedVendor] = useState({vendorId:"",name:""});
+const [showAddSoftware, setShowAddSoftware] = useState(false);
   const [loading, setLoading] = useState(false)
   const [vendor, setVendor] = useState({
     name: "",
@@ -75,19 +78,24 @@ export function AddForm({ setAllVendors, setTotalCount, page, itemsPerPage }: { 
     const newVendor = { ...vendor, password: randomPassword }
 
     try {
-      const response = await addNewVendor(newVendor)
-      if (!response.message.success) {
-        toast.error(response.message.message)
+      const {response} = await addNewVendor(newVendor)
+      if (!response.success) {
+        console.log("response",response);
+        toast.error(response.message)
         return
       }
 
-      toast.success(response.message.message)
+      toast.success(response.message)
       setVendor({ name: "", email: "", companyDescription: "", website: "", yearFounded: "" })
       setStep(1)
 
       const { vendors, totalcount } = await fetchAllVendor(page, itemsPerPage)
       setAllVendors(vendors)
       setTotalCount(totalcount)
+
+      console.log("response.message.vendor",response.vendor);
+      setLastCreatedVendor(response.vendor); // Make sure your backend returns the vendor object
+    setShowAddSoftware(true);
 
     } catch (error: any) {
       console.error("Error adding vendor:", error)
@@ -101,6 +109,19 @@ export function AddForm({ setAllVendors, setTotalCount, page, itemsPerPage }: { 
   const yearOptions = Array.from({ length: 100 }, (_, i) => currentYear - i)
 
   return (
+    <>
+    {showAddSoftware && lastCreatedVendor && (
+     
+      <AddSoftwareMultiStep
+        setShowForm={setShowAddSoftware}
+        onSuccess={() => setShowAddSoftware(false)}
+        preselectedVendor={{
+          id: lastCreatedVendor.vendorId,
+          name: lastCreatedVendor.name,
+        }}
+      />
+    )}
+    {!showAddSoftware && (
     <Drawer direction={isMobile ? "bottom" : "right"}>
       <DrawerTrigger asChild>
         <Button variant="outline" size="sm">
@@ -167,6 +188,8 @@ export function AddForm({ setAllVendors, setTotalCount, page, itemsPerPage }: { 
         </div>
       </DrawerContent>
     </Drawer>
+    )}
+    </>
   )
 }
 

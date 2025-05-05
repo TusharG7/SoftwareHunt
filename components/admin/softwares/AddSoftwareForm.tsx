@@ -9,10 +9,10 @@ import Step5Testimonies from "./steps/Step5Testimonies";
 import Step6ReviewRatings from "./steps/Step6ReviewRatings";
 import Step7Snapshots from "./steps/Step7Snapshots";
 
-const AddSoftwareMultiStep = ({ setShowForm }: { setShowForm: any }) => {
+const AddSoftwareMultiStep = ({ setShowForm, onSuccess, preselectedVendor }: { setShowForm: any, onSuccess: any, preselectedVendor: any }) => {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    vendor_id: "",
+    vendor_id: preselectedVendor?.id || "",
     software_name: "",
     logo: '',
     description: "",
@@ -50,6 +50,7 @@ const AddSoftwareMultiStep = ({ setShowForm }: { setShowForm: any }) => {
             setFormData={setFormData}
             onNext={() => setStep(2)}
             onCancel={() => setShowForm(false)}
+            preselectedVendor={preselectedVendor}
           />
         );
       case 2:
@@ -104,6 +105,7 @@ const AddSoftwareMultiStep = ({ setShowForm }: { setShowForm: any }) => {
             setFormData={setFormData}
             onBack={() => setStep(6)}
             setShowForm={() => setShowForm(false)}
+            onSuccess={onSuccess}
           />
         );
       default:

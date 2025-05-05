@@ -31,11 +31,13 @@ export default function Step1VendorName({
   setFormData,
   onNext,
   onCancel,
+  preselectedVendor,
 }: {
   formData: any
   setFormData: (data: any) => void
   onNext: () => void
   onCancel: () => void
+  preselectedVendor?: { id: string; name: string }
 }) {
   const [vendors, setVendors] = useState<Vendor[]>([]) // State to store fetched vendors
   const [errors, setErrors] = useState<{ vendor_id?: string; software_name?: string }>({})

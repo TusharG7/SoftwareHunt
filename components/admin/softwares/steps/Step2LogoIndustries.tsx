@@ -81,7 +81,9 @@ export default function Step2LogoIndustries({
 
   const handleAddIndustry = () => {
     if (newIndustry && !industries.some((i) => i.name === newIndustry)) {
-      const updated = [...industries, { industryId: "", name: newIndustry }];
+      // Generate a unique ID for the new industry
+      const newIndustryId = `manual_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const updated = [...industries, { industryId: newIndustryId, name: newIndustry }];
       setIndustries(updated);
       setSelectedIndustries([...selectedIndustries, newIndustry]);
       setNewIndustry("");

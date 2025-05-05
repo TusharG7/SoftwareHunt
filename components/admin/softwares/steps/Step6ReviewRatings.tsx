@@ -65,14 +65,14 @@ export default function Step6SoftwareHuntReview({
     <div className="flex flex-col gap-4">
       <h2 className="text-lg font-semibold">Step 6: SoftwareHunt Review</h2>
 
-      <div>
+      <div className="flex flex-col gap-2">
         <Label>What We Think</Label>
         <Textarea
           value={review.what_we_think}
           onChange={(e) => setReview({ ...review, what_we_think: e.target.value })}
         />
       </div>
-      <div>
+      <div className="flex flex-col gap-2">
         <Label>Pros</Label>
         <Textarea
           value={review.pros}
@@ -80,7 +80,7 @@ export default function Step6SoftwareHuntReview({
         />
       </div>
 
-      <div>
+      <div className="flex flex-col gap-2">
         <Label>Cons</Label>
         <Textarea
           value={review.cons}

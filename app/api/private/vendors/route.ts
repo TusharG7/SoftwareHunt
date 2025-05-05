@@ -16,10 +16,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Call the addNewVendor service method
-    const message = await addNewVendor({ name, email, website, password, companyDescription, yearFounded });
-
+    const response = await addNewVendor({ name, email, website, password, companyDescription, yearFounded });
     // Return success response
-    return NextResponse.json({ message }, { status: 201 });
+    return NextResponse.json({response});
   } catch (error) {
     console.error("Error in POST /vendors:", error);
     return NextResponse.json(

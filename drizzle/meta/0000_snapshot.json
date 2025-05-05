@@ -1,5 +1,5 @@
 {
-  "id": "c6c70c03-b034-430e-bfc9-3193c990765e",
+  "id": "a3cc5394-6d10-43e2-a637-a762b1f0506d",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -324,6 +324,180 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.pricing": {
+      "name": "pricing",
+      "schema": "",
+      "columns": {
+        "pricing_id": {
+          "name": "pricing_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "software_id": {
+          "name": "software_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tier_name": {
+          "name": "tier_name",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "price": {
+          "name": "price",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "duration": {
+          "name": "duration",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "features": {
+          "name": "features",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "max_users": {
+          "name": "max_users",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "pricing_software_id_softwares_software_id_fk": {
+          "name": "pricing_software_id_softwares_software_id_fk",
+          "tableFrom": "pricing",
+          "tableTo": "softwares",
+          "columnsFrom": [
+            "software_id"
+          ],
+          "columnsTo": [
+            "software_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "pricing_pricing_id_unique": {
+          "name": "pricing_pricing_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "pricing_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.reviews": {
+      "name": "reviews",
+      "schema": "",
+      "columns": {
+        "review_id": {
+          "name": "review_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "software_id": {
+          "name": "software_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "pros": {
+          "name": "pros",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cons": {
+          "name": "cons",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "what_we_think": {
+          "name": "what_we_think",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ease_of_use": {
+          "name": "ease_of_use",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "scalability": {
+          "name": "scalability",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "budget_friendly": {
+          "name": "budget_friendly",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "customer_support": {
+          "name": "customer_support",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "integration_flexibility": {
+          "name": "integration_flexibility",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "reviews_software_id_softwares_software_id_fk": {
+          "name": "reviews_software_id_softwares_software_id_fk",
+          "tableFrom": "reviews",
+          "tableTo": "softwares",
+          "columnsFrom": [
+            "software_id"
+          ],
+          "columnsTo": [
+            "software_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "reviews_review_id_unique": {
+          "name": "reviews_review_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "review_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.softwares": {
       "name": "softwares",
       "schema": "",
@@ -396,20 +570,6 @@
           "notNull": false,
           "default": false
         },
-        "pricing_plans": {
-          "name": "pricing_plans",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'[]'::jsonb"
-        },
-        "testimonies": {
-          "name": "testimonies",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'[]'::jsonb"
-        },
         "snapshots": {
           "name": "snapshots",
           "type": "jsonb",
@@ -462,6 +622,78 @@
           "nullsNotDistinct": false,
           "columns": [
             "software_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.testimony": {
+      "name": "testimony",
+      "schema": "",
+      "columns": {
+        "testimony_id": {
+          "name": "testimony_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "software_id": {
+          "name": "software_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_name": {
+          "name": "user_name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "industry": {
+          "name": "industry",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "features": {
+          "name": "features",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "testimony": {
+          "name": "testimony",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "testimony_software_id_softwares_software_id_fk": {
+          "name": "testimony_software_id_softwares_software_id_fk",
+          "tableFrom": "testimony",
+          "tableTo": "softwares",
+          "columnsFrom": [
+            "software_id"
+          ],
+          "columnsTo": [
+            "software_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "testimony_testimony_id_unique": {
+          "name": "testimony_testimony_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "testimony_id"
           ]
         }
       },

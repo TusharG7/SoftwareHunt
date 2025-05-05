@@ -122,6 +122,7 @@ export default function Step4Pricing({
                 <Button
                   variant="ghost"
                   size="sm"
+                  className="text-red-500"
                   onClick={() => handleRemoveTier(index)}
                 >
                   Remove
@@ -129,7 +130,7 @@ export default function Step4Pricing({
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div>
+                <div className="flex flex-col gap-2">
                   <Label>Tier Name</Label>
                   <Input
                     value={tier.tierName}
@@ -137,7 +138,7 @@ export default function Step4Pricing({
                     placeholder="e.g., Basic, Pro, Enterprise"
                   />
                 </div>
-                <div>
+                <div className="flex flex-col gap-2">
                   <Label>Price</Label>
                   <Input
                     type="number"
@@ -146,7 +147,7 @@ export default function Step4Pricing({
                     placeholder="e.g., 99"
                   />
                 </div>
-                <div>
+                <div className="flex flex-col gap-2">
                   <Label>Duration</Label>
                   <Input
                     value={tier.duration}
@@ -154,7 +155,7 @@ export default function Step4Pricing({
                     placeholder="e.g., per month, per year"
                   />
                 </div>
-                <div>
+                <div className="flex flex-col gap-2">
                   <Label>Max Users</Label>
                   <Input
                     type="number"
@@ -165,7 +166,7 @@ export default function Step4Pricing({
                 </div>
               </div>
 
-              <div className="mt-3">
+              <div className="flex flex-col gap-2">
                 <Label>Available Features</Label>
                 <ScrollArea className="h-32 w-full rounded-md border p-2">
                   <div className="flex gap-2 flex-wrap">

@@ -80,8 +80,6 @@ export const softwareTable = pgTable("softwares",
   painPoints: jsonb("pain_points").$type<string[]>(),
   features: jsonb("features").$type<string[]>(),
   isFree: boolean("is_free").default(false),
-  pricingPlans: jsonb("pricing_plans").$type<string[]>().default([]),
-  testimonies: jsonb("testimonies").$type<string[]>().default([]),
 
   snapshots: jsonb("snapshots").$type<{
     images: string[];
@@ -112,6 +110,20 @@ export const testimonyTable = pgTable("testimony", {
   industry: varchar("industry", { length: 255 }).notNull(),
   features: jsonb("features").$type<string[]>(),
   testimony: text("testimony").notNull(),
+});
+
+export const reviewTable = pgTable("reviews", {
+  reviewId: uuid("review_id").notNull().primaryKey().defaultRandom().unique(),
+  softwareId: uuid("software_id").notNull().references(() => softwareTable.softwareId, { onDelete: "cascade" }),
+  pros: text("pros").notNull(),
+  cons: text("cons").notNull(),
+  whatWeThink: text("what_we_think").notNull(),
+  // Ratings
+  easeOfUse: integer("ease_of_use").notNull(),
+  scalability: integer("scalability").notNull(),
+  budgetFriendly: integer("budget_friendly").notNull(),
+  customerSupport: integer("customer_support").notNull(),
+  integrationFlexibility: integer("integration_flexibility").notNull(),
 });
 
 // Visitor Table

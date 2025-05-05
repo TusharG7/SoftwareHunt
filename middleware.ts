@@ -45,3 +45,17 @@
 //     "/((?!_next/static|_next/image|images|favicon.ico|robots.txt|sitemap.xml|[^/]+\\.(?:css|js|gif|jpg|jpeg|png|webp|avif|svg|ico|woff|woff2|ttf|eot|mp4|webm|ogg|mp3|wav|m4a|aac|opus)).*)",
 //   ],
 // };
+
+import { NextRequest, NextResponse } from "next/server";
+
+export async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: [
+    "/((?!_next/static|_next/image|images|favicon.ico|robots.txt|sitemap.xml|[^/]+\\.(?:css|js|gif|jpg|jpeg|png|webp|avif|svg|ico|woff|woff2|ttf|eot|mp4|webm|ogg|mp3|wav|m4a|aac|opus)).*)",
+  ],
+};

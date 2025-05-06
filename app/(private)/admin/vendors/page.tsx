@@ -1,8 +1,13 @@
+import { auth } from '@/auth';
 import ClientWrapper from '@/components/admin/vendors/ClientWrapper'
 import { getAllVendors } from '@/services/vendors.service'
+import { redirect } from 'next/navigation';
 import React from 'react'
 
 const page = async () => {
+  const session = await auth()
+      console.log('session',session)
+          if(!session) redirect('/')
     const itemsPerPage = 10;
     const {vendors, totalcount, page} = await getAllVendors({
         page: 1,

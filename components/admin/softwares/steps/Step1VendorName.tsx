@@ -14,11 +14,7 @@ import {
 import { z } from "zod"
 import { fetchVendorsOptions } from "@/controllers/vendors.controller"
 import { checkSoftwareExistsByName } from "@/controllers/software.controller"
-
-type Vendor = {
-  name: string
-  vendor_id: string
-}
+import { Vendor, FormData } from '@/types/software'
 
 // Define Zod schema for validation
 const step1Schema = z.object({
@@ -26,29 +22,36 @@ const step1Schema = z.object({
   software_name: z.string().nonempty("Please enter a software name."),
 })
 
+interface Props {
+  formData: FormData
+  setFormData: (val: FormData | ((prev: FormData) => FormData)) => void
+  onNext: () => void
+  onCancel: () => void
+  preselectedVendor?: { id: string; name: string }
+}
+
 export default function Step1VendorName({
   formData,
   setFormData,
   onNext,
   onCancel,
   preselectedVendor,
-}: {
-  formData: any
-  setFormData: (data: any) => void
-  onNext: () => void
-  onCancel: () => void
-  preselectedVendor?: { id: string; name: string }
-}) {
+}: Props) {
   const [vendors, setVendors] = useState<Vendor[]>([]) // State to store fetched vendors
   const [errors, setErrors] = useState<{ vendor_id?: string; software_name?: string }>({})
+  const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(formData.vendor)
 
   const handleVendorSelect = (vendorId: string) => {
-    const selected = vendors.find((v) => v.vendor_id === vendorId)
-    if (selected) {
-      setFormData((prev: any) => ({ ...prev, vendor_id: selected.vendor_id }))
-      setErrors((prev) => ({ ...prev, vendor_id: undefined })) // Clear error
+    const vendor = vendors.find(v => v.vendor_id === vendorId);
+    if (vendor) {
+      setSelectedVendor(vendor);
+      setFormData(prev => ({
+        ...prev,
+        vendor,
+        vendor_id: vendorId
+      }));
     }
-  }
+  };
 
   const handleNext = async () => {
     // Validate form data with Zod
@@ -97,13 +100,28 @@ export default function Step1VendorName({
     fetchVendors()
   }, [])
 
+  // Add this useEffect to handle preselectedVendor
+  useEffect(() => {
+    if (preselectedVendor && vendors.length > 0) {
+      const vendor = vendors.find(v => v.vendor_id === preselectedVendor.id);
+      if (vendor) {
+        setSelectedVendor(vendor);
+        setFormData(prev => ({
+          ...prev,
+          vendor,
+          vendor_id: vendor.vendor_id
+        }));
+      }
+    }
+  }, [preselectedVendor, vendors]);
+
   return (
     <div className="flex flex-col gap-4">
       <h2 className="text-lg font-semibold">Step 1: Vendor & Software Name</h2>
 
       <div className="flex flex-col gap-3">
         <Label>Vendor</Label>
-        <Select onValueChange={handleVendorSelect}>
+        <Select onValueChange={handleVendorSelect} value={selectedVendor?.vendor_id}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Select vendor" />
           </SelectTrigger>
@@ -124,7 +142,7 @@ export default function Step1VendorName({
           id="software_name"
           value={formData.software_name}
           onChange={(e) => {
-            setFormData((prev: any) => ({ ...prev, software_name: e.target.value }))
+            setFormData((prev: FormData) => ({ ...prev, software_name: e.target.value }))
             setErrors((prev) => ({ ...prev, software_name: undefined })) // Clear error
           }}
         />

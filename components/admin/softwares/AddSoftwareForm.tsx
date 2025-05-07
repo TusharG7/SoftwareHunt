@@ -8,13 +8,15 @@ import Step4Pricing from "./steps/Step4Pricing";
 import Step5Testimonies from "./steps/Step5Testimonies";
 import Step6ReviewRatings from "./steps/Step6ReviewRatings";
 import Step7Snapshots from "./steps/Step7Snapshots";
+import { FormData } from '@/types/software';
 
 const AddSoftwareMultiStep = ({ setShowForm, onSuccess, preselectedVendor }: { setShowForm: any, onSuccess: any, preselectedVendor: any }) => {
   const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
+    vendor: null,
     vendor_id: preselectedVendor?.id || "",
     software_name: "",
-    logo: '',
+    logo: null,
     description: "",
     industries: [],
     business_needs: [],

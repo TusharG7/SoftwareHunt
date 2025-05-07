@@ -363,7 +363,7 @@ const ClientWrapper = ({
                     }
                   />
                 </div>
-                <div className="flex flex-col gap-3">
+                {/* <div className="flex flex-col gap-3">
                   <Label htmlFor="status">Status</Label>
                   <Input
                     id="status"
@@ -375,6 +375,23 @@ const ClientWrapper = ({
                       })
                     }
                   />
+                </div> */}
+                <div className="flex flex-col gap-3">
+                  <Label htmlFor="status">Status</Label>
+                  <select
+                    id="status"
+                    value={selectedVendor.status}
+                    onChange={(e) =>
+                      setSelectedVendor({
+                        ...selectedVendor,
+                        status: e.target.value,
+                      })
+                    }
+                    className="border rounded px-2 py-1"
+                  >
+                    <option value="ACTIVE">Active</option>
+                    <option value="INACTIVE">Inactive</option>
+                  </select>
                 </div>
                 <DrawerFooter>
                   <Button type="submit" disabled={loading}>

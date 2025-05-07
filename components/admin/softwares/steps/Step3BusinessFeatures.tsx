@@ -9,28 +9,31 @@ import { MultiSelect } from "@/components/admin/multi-select"
 import { fetchBusinessNeedsOptions } from "@/controllers/business-needs.controller"
 import { fetchPainPointsOptions } from "@/controllers/painPoints.controller"
 import { fetchFeaturesOptions } from "@/controllers/features.controller"
+import { BusinessNeed, PainPoint, Feature, FormData } from '@/types/software'
+
+interface Props {
+  formData: FormData
+  setFormData: (val: FormData | ((prev: FormData) => FormData)) => void
+  onNext: () => void
+  onBack: () => void
+}
 
 export default function Step3BusinessFeatures({
   formData,
   setFormData,
   onNext,
   onBack,
-}: {
-  formData: any
-  setFormData: (val: any) => void
-  onNext: () => void
-  onBack: () => void
-}) {
+}: Props) {
   const [addingField, setAddingField] = useState<"business_needs" | "pain_points" | "key_features" | null>(null)
   const [newName, setNewName] = useState("")
   const [associations, setAssociations] = useState<string[]>([])
 
-  const [businessNeeds, setBusinessNeeds] = useState<{ businessNeedsId: string, name: string }[]>([])
-  const [painPoints, setPainPoints] = useState<{ painPointId: string, name: string, businessNeedsId: string }[]>([])
-  const [features, setFeatures] = useState<{ featureId: string, name: string, businessNeedsId: string }[]>([])
+  const [businessNeeds, setBusinessNeeds] = useState<BusinessNeed[]>(formData.business_needs || [])
+  const [painPoints, setPainPoints] = useState<PainPoint[]>(formData.pain_points || [])
+  const [keyFeatures, setKeyFeatures] = useState<Feature[]>(formData.key_features || [])
 
   // Track newly added business needs
-  const [newBusinessNeeds, setNewBusinessNeeds] = useState<{ businessNeedsId: string, name: string }[]>([])
+  const [newBusinessNeeds, setNewBusinessNeeds] = useState<BusinessNeed[]>([])
 
   useEffect(() => {
     async function loadOptions() {
@@ -41,7 +44,7 @@ export default function Step3BusinessFeatures({
       if (ppRes.painPoints) setPainPoints(ppRes.painPoints)
 
       const fRes = await fetchFeaturesOptions()
-      if (fRes.features) setFeatures(fRes.features)
+      if (fRes.features) setKeyFeatures(fRes.features)
     }
     loadOptions()
   }, [])
@@ -50,35 +53,112 @@ export default function Step3BusinessFeatures({
   const allBusinessNeeds = [...businessNeeds, ...newBusinessNeeds]
 
   const handleAdd = (key: string) => {
-    if (!newName) return
+    if (!newName) return;
 
     if (key === "business_needs") {
-      // Add to newBusinessNeeds when adding a new business need
-      const newBusinessNeed = {
-        businessNeedsId: `new_${Date.now()}`, // Temporary ID for new items
-        name: newName
-      }
-      setNewBusinessNeeds([...newBusinessNeeds, newBusinessNeed])
+      const newBusinessNeed: BusinessNeed = {
+        businessNeedsId: `new_${Date.now()}`,
+        name: newName,
+        associations: []
+      };
+      setNewBusinessNeeds([...newBusinessNeeds, newBusinessNeed]);
+      setFormData((prev: FormData) => ({
+        ...prev,
+        business_needs: [...prev.business_needs, newBusinessNeed]
+      }));
+    } else if (key === "pain_points") {
+      const newPainPoint: PainPoint = {
+        painPointId: `new_${Date.now()}`,
+        name: newName,
+        businessNeedsId: '',
+        associations: associations
+      };
+      setFormData((prev: FormData) => ({
+        ...prev,
+        pain_points: [...prev.pain_points, newPainPoint]
+      }));
+    } else if (key === "key_features") {
+      const newFeature: Feature = {
+        featureId: `new_${Date.now()}`,
+        name: newName,
+        businessNeedsId: '',
+        associations: associations
+      };
+      setFormData((prev: FormData) => ({
+        ...prev,
+        key_features: [...prev.key_features, newFeature]
+      }));
     }
 
-    const payload = { name: newName, associations }
-    setFormData((prev: any) => ({
-      ...prev,
-      [key]: [...(prev[key] || []), payload],
-    }))
-    setAddingField(null)
-    setNewName("")
-    setAssociations([])
-  }
+    setAddingField(null);
+    setNewName("");
+    setAssociations([]);
+  };
 
   const handleRemove = (key: string, itemName: string) => {
     if (key === "business_needs") {
-      // Also remove from newBusinessNeeds if it was a newly added item
       setNewBusinessNeeds(newBusinessNeeds.filter(bn => bn.name !== itemName))
     }
-    setFormData((prev: any) => ({
+    
+    setFormData((prev: FormData) => ({
       ...prev,
-      [key]: prev[key].filter((item: any) => item.name !== itemName),
+      [key]: prev[key].filter((item: any) => item.name !== itemName)
+    }))
+  }
+
+  const handleBusinessNeedsChange = (selectedIds: string[]) => {
+    const selectedNames = selectedIds.map(id => {
+      const found = allBusinessNeeds.find(bn => bn.businessNeedsId === id)
+      return found ? found.name : id
+    })
+
+    const newBusinessNeeds: BusinessNeed[] = selectedNames.map(name => ({
+      businessNeedsId: `new_${name}`,
+      name,
+      associations: []
+    }))
+
+    setFormData((prev: FormData) => ({
+      ...prev,
+      business_needs: newBusinessNeeds
+    }))
+  }
+
+  const handlePainPointsChange = (selectedIds: string[]) => {
+    const selectedNames = selectedIds.map(id => {
+      const found = painPoints.find(pp => pp.painPointId === id)
+      return found ? found.name : id
+    })
+
+    const newPainPoints: PainPoint[] = selectedNames.map(name => ({
+      painPointId: `new_${name}`,
+      name,
+      businessNeedsId: '',
+      associations: []
+    }))
+
+    setFormData((prev: FormData) => ({
+      ...prev,
+      pain_points: newPainPoints
+    }))
+  }
+
+  const handleFeaturesChange = (selectedIds: string[]) => {
+    const selectedNames = selectedIds.map(id => {
+      const found = keyFeatures.find(f => f.featureId === id)
+      return found ? found.name : id
+    })
+
+    const newFeatures: Feature[] = selectedNames.map(name => ({
+      featureId: `new_${name}`,
+      name,
+      businessNeedsId: '',
+      associations: []
+    }))
+
+    setFormData((prev: FormData) => ({
+      ...prev,
+      key_features: newFeatures
     }))
   }
 
@@ -87,7 +167,7 @@ export default function Step3BusinessFeatures({
       <h2 className="text-lg font-semibold">Step 3: Business Needs, Pain Points & Features</h2>
 
       {/* --- BUSINESS NEEDS --- */}
-      <div className="flex flex-col gap-3 mt-4">
+      <div className="flex flex-col gap-3 mt-4 bg-gray-50 border rounded-lg p-4">
         <Label>Business Needs</Label>
 
         <MultiSelect
@@ -97,17 +177,7 @@ export default function Step3BusinessFeatures({
             const found = allBusinessNeeds.find(bn => bn.name === item.name);
             return found ? found.businessNeedsId : item.name;
           })}
-          onChange={(selectedIds: string[]) => {
-            // Map selected IDs back to names for storage
-            const selectedNames = selectedIds.map(id => {
-              const found = allBusinessNeeds.find(bn => bn.businessNeedsId === id);
-              return found ? found.name : id;
-            });
-            setFormData((prev: any) => ({
-              ...prev,
-              business_needs: selectedNames.map(name => ({ name, associations: [] })),
-            }));
-          }}
+          onChange={handleBusinessNeedsChange}
           placeholder="Select Business Needs..."
         />
 
@@ -116,15 +186,15 @@ export default function Step3BusinessFeatures({
         </Button>
 
         {addingField === "business_needs" && (
-          <div className="flex flex-col gap-2 mt-2">
-            <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="New Business Need..." />
+          <div className="flex flex-col gap-2 mt-2 border p-2 bg-blue-50">
+            <Input className="bg-white" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="New Business Need..." />
             <Button className="mt-2" onClick={() => handleAdd("business_needs")}>
               Save Business Need
             </Button>
           </div>
         )}
 
-        <div className="flex flex-wrap gap-2 mt-3">
+        <div className="flex flex-wrap gap-2">
           {(formData.business_needs || []).map((need: any) => (
             <Badge key={need.name} onClick={() => handleRemove("business_needs", need.name)} variant="secondary" className="cursor-pointer">
               {need.name} ✕
@@ -134,7 +204,7 @@ export default function Step3BusinessFeatures({
       </div>
 
       {/* --- PAIN POINTS --- */}
-      <div className="flex flex-col gap-3 mt-3">
+      <div className="flex flex-col gap-3 mt-3 bg-gray-50 border rounded-lg p-4">
         <Label>Pain Points</Label>
 
         <MultiSelect
@@ -144,17 +214,7 @@ export default function Step3BusinessFeatures({
             const found = painPoints.find(pp => pp.name === item.name);
             return found ? found.painPointId : item.name;
           })}
-          onChange={(selectedIds: string[]) => {
-            // Map selected IDs back to names for storage
-            const selectedNames = selectedIds.map(id => {
-              const found = painPoints.find(pp => pp.painPointId === id);
-              return found ? found.name : id;
-            });
-            setFormData((prev: any) => ({
-              ...prev,
-              pain_points: selectedNames.map(name => ({ name, associations: [] })),
-            }));
-          }}
+          onChange={handlePainPointsChange}
           placeholder="Select Pain Points..."
         />
 
@@ -163,8 +223,8 @@ export default function Step3BusinessFeatures({
         </Button>
 
         {addingField === "pain_points" && (
-          <div className="flex flex-col gap-2 mt-2">
-            <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="New Pain Point..." />
+          <div className="flex flex-col gap-2 mt-2 border p-2 bg-blue-50">
+            <Input className="bg-white" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="New Pain Point..." />
             <Label>Select Associated Business Needs</Label>
             <MultiSelect
               options={allBusinessNeeds.map(bn => ({ label: bn.name, value: bn.businessNeedsId }))}
@@ -178,9 +238,9 @@ export default function Step3BusinessFeatures({
           </div>
         )}
 
-        <div className="flex flex-wrap gap-2 mt-3">
+        <div className="flex flex-wrap gap-2">
           {(formData.pain_points || []).map((pain: any) => (
-            <Badge key={pain.name} onClick={() => handleRemove("pain_points", pain.name)} variant="secondary" className="cursor-pointer">
+            <Badge key={pain.name} onClick={() => handleRemove("pain_points", pain.name)} variant="secondary" className="shadow cursor-pointer">
               {pain.name} ✕
             </Badge>
           ))}
@@ -188,27 +248,17 @@ export default function Step3BusinessFeatures({
       </div>
 
       {/* --- KEY FEATURES --- */}
-      <div className="flex flex-col gap-3 mt-6">
+      <div className="flex flex-col gap-3 mt-3 bg-gray-50 border rounded-lg p-4">
         <Label>Key Features</Label>
 
         <MultiSelect
-          options={features.map(f => ({ label: f.name, value: f.featureId }))}
+          options={keyFeatures.map(f => ({ label: f.name, value: f.featureId }))}
           selectedValues={(formData.key_features || []).map((item: any) => {
             // Find the feature by name to get its ID for the select component
-            const found = features.find(f => f.name === item.name);
+            const found = keyFeatures.find(f => f.name === item.name);
             return found ? found.featureId : item.name;
           })}
-          onChange={(selectedIds: string[]) => {
-            // Map selected IDs back to names for storage
-            const selectedNames = selectedIds.map(id => {
-              const found = features.find(f => f.featureId === id);
-              return found ? found.name : id;
-            });
-            setFormData((prev: any) => ({
-              ...prev,
-              key_features: selectedNames.map(name => ({ name, associations: [] })),
-            }));
-          }}
+          onChange={handleFeaturesChange}
           placeholder="Select Features..."
         />
 
@@ -217,8 +267,8 @@ export default function Step3BusinessFeatures({
         </Button>
 
         {addingField === "key_features" && (
-          <div className="flex flex-col gap-2 mt-2">
-            <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="New Key Feature..." />
+          <div className="flex flex-col gap-2 mt-2 border p-2 bg-blue-50">
+            <Input className="bg-white" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="New Key Feature..." />
             <Label>Select Associated Business Needs</Label>
             <MultiSelect
               options={allBusinessNeeds.map(bn => ({ label: bn.name, value: bn.businessNeedsId }))}

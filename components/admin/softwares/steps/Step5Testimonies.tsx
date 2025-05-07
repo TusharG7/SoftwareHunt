@@ -8,38 +8,28 @@ import { Button } from "@/components/ui/button";
 import { MultiSelect } from "@/components/admin/multi-select";
 import { fetchIndustriesOptions } from "@/controllers/industries.controller";
 import { fetchFeaturesOptions } from "@/controllers/features.controller";
+import { FormData, SetFormData, Testimony } from '@/types/software';
 
-type Testimony = {
-  userName: string;
-  industry: string;
-  text: string;
-  featuresBenefitted: string[];
-};
+interface Props {
+  formData: FormData;
+  setFormData: SetFormData;
+  onNext: () => void;
+  onBack: () => void;
+}
 
 export default function Step5Testimonies({
   formData,
   setFormData,
   onNext,
   onBack,
-}: {
-  formData: any;
-  setFormData: (val: any) => void;
-  onNext: () => void;
-  onBack: () => void;
-}) {
-  const [testimonies, setTestimonies] = useState<Testimony[]>(
-    formData.testimonies || []
-  );
+}: Props) {
+  const [testimonies, setTestimonies] = useState<Testimony[]>(formData.testimonies || []);
   const [industries, setIndustries] = useState<{ industryId: string, name: string }[]>([]);
-  const [features, setFeatures] = useState<{ featureId: string, name: string }[]>([]);
 
   useEffect(() => {
     async function loadOptions() {
       const industriesRes = await fetchIndustriesOptions();
       if (industriesRes.industries) setIndustries(industriesRes.industries);
-
-      const featuresRes = await fetchFeaturesOptions();
-      if (featuresRes.features) setFeatures(featuresRes.features);
     }
     loadOptions();
   }, []);
@@ -52,20 +42,22 @@ export default function Step5Testimonies({
       name: industry.name
     }));
 
-  // Get newly added features from Step 3
-  const newFeatures = (formData.key_features || [])
-    .filter((feature: any) => typeof feature === 'object' && feature.name)
+  // Only use features that were selected in Step 3
+  const selectedFeatures = (formData.key_features || [])
     .map((feature: any) => ({
-      featureId: `new_${feature.name}`,
+      featureId: feature.featureId || `new_${feature.name}`,
       name: feature.name
     }));
 
-  // Combine database and newly added options
+  // Combine database and newly added industries
   const allIndustries = [...industries, ...newIndustries];
-  const allFeatures = [...features, ...newFeatures];
-
   const industryOptions = allIndustries.map(i => ({ label: i.name, value: i.industryId }));
-  const featureOptions = allFeatures.map(f => ({ label: f.name, value: f.featureId }));
+  
+  // Create options array for features using only selected features
+  const featureOptions = selectedFeatures.map(f => ({ 
+    label: f.name, 
+    value: f.featureId 
+  }));
 
   const addTestimony = () => {
     setTestimonies([
@@ -85,10 +77,18 @@ export default function Step5Testimonies({
     setTestimonies(updated);
   };
 
-  const handleContinue = () => {
-    setFormData((prev: any) => ({
+  const handleTestimoniesChange = (newTestimonies: Testimony[]) => {
+    setTestimonies(newTestimonies);
+    setFormData((prev: FormData) => ({
       ...prev,
-      testimonies,
+      testimonies: newTestimonies
+    }));
+  };
+
+  const handleContinue = () => {
+    setFormData((prev: FormData) => ({
+      ...prev,
+      testimonies
     }));
     onNext();
   };
@@ -97,7 +97,7 @@ export default function Step5Testimonies({
     <div className="flex flex-col gap-6">
       <h2 className="text-lg font-semibold">Step 5: User Testimonies</h2>
 
-      {testimonies.map((item, index) => (
+      {testimonies.map((item: Testimony, index: number) => (
         <div
           key={index}
           className="relative border rounded-xl bg-gray-50 p-6 flex flex-col gap-5"
@@ -117,6 +117,7 @@ export default function Step5Testimonies({
               <Label>User Name</Label>
               <Input
                 value={item.userName}
+                className="bg-white"
                 onChange={(e) =>
                   handleChange(index, "userName", e.target.value)
                 }
@@ -141,6 +142,7 @@ export default function Step5Testimonies({
               <Textarea
                 value={item.text}
                 onChange={(e) => handleChange(index, "text", e.target.value)}
+                className="bg-white"
                 placeholder="Enter testimony"
               />
             </div>

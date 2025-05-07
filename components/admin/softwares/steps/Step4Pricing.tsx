@@ -6,28 +6,33 @@ import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { fetchFeaturesOptions } from "@/controllers/features.controller"
+import { FormData, SetFormData, PricingTier } from '@/types/software'
 
-type PricingTier = {
-  tierName: string
-  price: string
-  duration: string
-  maxUsers: string
-  features: string[]
+interface Props {
+  formData: FormData
+  setFormData: SetFormData
+  onNext: () => void
+  onBack: () => void
 }
+
+const DURATION_OPTIONS = [
+  { value: "per month", label: "Per Month" },
+  { value: "per year", label: "Per Year" },
+  { value: "per quarter", label: "Per Quarter" },
+  { value: "per week", label: "Per Week" },
+  { value: "one-time", label: "One Time" },
+  { value: "per user per month", label: "Per User Per Month" },
+  { value: "per user per year", label: "Per User Per Year" }
+];
 
 export default function Step4Pricing({
   formData,
   setFormData,
   onNext,
   onBack,
-}: {
-  formData: any
-  setFormData: (val: any) => void
-  onNext: () => void
-  onBack: () => void
-}) {
-  const [isFree, setIsFree] = useState(formData.isFree || false)
-  const [pricingTiers, setPricingTiers] = useState<PricingTier[]>(formData.pricingTiers || [])
+}: Props) {
+  const [isFree, setIsFree] = useState(formData.is_free || false)
+  const [pricingTiers, setPricingTiers] = useState<PricingTier[]>(formData.pricing_tiers || [])
   const [features, setFeatures] = useState<{ featureId: string, name: string }[]>([])
 
   useEffect(() => {
@@ -38,23 +43,18 @@ export default function Step4Pricing({
     loadFeatures()
   }, [])
 
-  // Get newly added features from Step 3
-  const newFeatures = (formData.key_features || [])
-    .filter((feature: any) => typeof feature === 'object' && feature.name)
+  // Only use features that were selected in Step 3
+  const selectedFeatures = (formData.key_features || [])
     .map((feature: any) => ({
-      featureId: `new_${feature.name}`,
+      featureId: feature.featureId || `new_${feature.name}`,
       name: feature.name
-    }))
+    }));
 
-  // Deduplicate by name, prefer DB feature if exists
-  const featureMap = new Map();
-  [...features, ...newFeatures].forEach(f => {
-    if (!featureMap.has(f.name)) {
-      featureMap.set(f.name, f);
-    }
-  });
-  const allFeatures = Array.from(featureMap.values());
-  const availableFeatures = allFeatures.map(f => ({ label: f.name, value: f.featureId }));
+  // Create options array for the badges
+  const availableFeatures = selectedFeatures.map(f => ({ 
+    label: f.name, 
+    value: f.featureId 
+  }));
 
   const handleAddTier = () => {
     setPricingTiers([
@@ -74,10 +74,19 @@ export default function Step4Pricing({
   }
 
   const handleTierChange = (index: number, field: keyof PricingTier, value: string) => {
-    const newTiers = [...pricingTiers]
-    newTiers[index] = { ...newTiers[index], [field]: value }
-    setPricingTiers(newTiers)
-  }
+    const newTiers = [...pricingTiers];
+    if (field === "maxUsers") {
+      // If value is "unlimited", set it directly
+      // Otherwise, ensure it's a valid number
+      newTiers[index] = { 
+        ...newTiers[index], 
+        [field]: value === "unlimited" ? "unlimited" : value 
+      };
+    } else {
+      newTiers[index] = { ...newTiers[index], [field]: value };
+    }
+    setPricingTiers(newTiers);
+  };
 
   const toggleFeatureInTier = (tierIndex: number, feature: string) => {
     const newTiers = [...pricingTiers]
@@ -93,13 +102,22 @@ export default function Step4Pricing({
     setPricingTiers(newTiers)
   }
 
-  const handleNext = () => {
-    setFormData((prev: any) => ({
+  const handlePricingChange = (tiers: PricingTier[]) => {
+    setPricingTiers(tiers);
+    setFormData((prev: FormData) => ({
       ...prev,
-      is_free:isFree,
+      pricing_tiers: tiers,
+      is_free: isFree
+    }));
+  };
+
+  const handleNext = () => {
+    setFormData((prev: FormData) => ({
+      ...prev,
+      is_free: isFree,
       pricing_tiers: isFree ? [] : pricingTiers,
-    }))
-    onNext()
+    }));
+    onNext();
   }
 
   return (
@@ -149,20 +167,38 @@ export default function Step4Pricing({
                 </div>
                 <div className="flex flex-col gap-2">
                   <Label>Duration</Label>
-                  <Input
+                  <select
                     value={tier.duration}
                     onChange={(e) => handleTierChange(index, "duration", e.target.value)}
-                    placeholder="e.g., per month, per year"
-                  />
+                    className="flex border py-1.5 shadow-xs appearance-none w-full rounded-md px-2 text-sm"
+                  >
+                    <option value="">Select duration</option>
+                    {DURATION_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div className="flex flex-col gap-2">
                   <Label>Max Users</Label>
-                  <Input
-                    type="number"
-                    value={tier.maxUsers}
-                    onChange={(e) => handleTierChange(index, "maxUsers", e.target.value)}
-                    placeholder="e.g., 5, 10, unlimited"
-                  />
+                  <div className="flex gap-2">
+                    <Input
+                      type="number"
+                      value={tier.maxUsers === "unlimited" ? "" : tier.maxUsers}
+                      onChange={(e) => handleTierChange(index, "maxUsers", e.target.value)}
+                      placeholder="Number of users"
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant={tier.maxUsers === "unlimited" ? "default" : "outline"}
+                      onClick={() => handleTierChange(index, "maxUsers", "unlimited")}
+                      className="whitespace-nowrap"
+                    >
+                      ∞
+                    </Button>
+                  </div>
                 </div>
               </div>
 

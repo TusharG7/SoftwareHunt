@@ -16,19 +16,14 @@ import { Badge } from "@/components/ui/badge";
 import { z } from "zod";
 import { fetchIndustriesOptions } from "@/controllers/industries.controller";
 
-// Dummy industries for selection
-const dummyIndustries = ["Healthcare", "Finance", "Education", "E-commerce"];
-
 // Define Zod schema for validation
 const step2Schema = z.object({
-  logo: z
-    .instanceof(File)
-    .optional()
-    .refine((file) => file?.size && file?.size <= 1 * 1024 * 1024, {
-      message: "Logo must be less than 1MB.",
-    }),
+  logo: z.union([z.instanceof(File), z.string().url()]).optional(),
   description: z.string().nonempty("Description is required."),
-  website: z.string().url("Please enter a valid website URL."),
+  website: z
+    .string()
+    .transform((val) => (val.startsWith("http") ? val : `https://${val}`))
+    .pipe(z.string().url("Please enter a valid website URL.")),
   industries: z
     .array(z.string())
     .min(1, "Please select at least one industry."),
@@ -46,8 +41,12 @@ export default function Step2LogoIndustries({
   onNext: () => void;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [localLogoFile, setLocalLogoFile] = useState<File | null>(null);
-  const [industries, setIndustries] = useState<{ industryId: string, name: string }[]>([]);
+  const [localLogoFile, setLocalLogoFile] = useState<File | null>(
+    formData.logo instanceof File ? formData.logo : null
+  );
+  const [industries, setIndustries] = useState<
+    { industryId: string; name: string }[]
+  >([]);
   const [selectedIndustries, setSelectedIndustries] = useState<string[]>(
     formData.industries || []
   );
@@ -82,8 +81,13 @@ export default function Step2LogoIndustries({
   const handleAddIndustry = () => {
     if (newIndustry && !industries.some((i) => i.name === newIndustry)) {
       // Generate a unique ID for the new industry
-      const newIndustryId = `manual_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      const updated = [...industries, { industryId: newIndustryId, name: newIndustry }];
+      const newIndustryId = `manual_${Date.now()}_${Math.random()
+        .toString(36)
+        .substr(2, 9)}`;
+      const updated = [
+        ...industries,
+        { industryId: newIndustryId, name: newIndustry },
+      ];
       setIndustries(updated);
       setSelectedIndustries([...selectedIndustries, newIndustry]);
       setNewIndustry("");
@@ -108,7 +112,8 @@ export default function Step2LogoIndustries({
       } = {};
       result.error.errors.forEach((err) => {
         if (err.path[0] === "logo") fieldErrors.logo = err.message;
-        if (err.path[0] === "description") fieldErrors.description = err.message;
+        if (err.path[0] === "description")
+          fieldErrors.description = err.message;
         if (err.path[0] === "website") fieldErrors.website = err.message;
         if (err.path[0] === "industries") fieldErrors.industries = err.message;
       });
@@ -163,6 +168,7 @@ export default function Step2LogoIndustries({
         <Label>Logo</Label>
         <Input
           type="file"
+          className="cursor-pointer"
           ref={fileInputRef}
           onChange={(e) => {
             const file = e.target.files?.[0];
@@ -202,6 +208,15 @@ export default function Step2LogoIndustries({
               });
           }}
         />
+        {formData.logo && (
+          <div className="">
+            <img
+              src={formData.logo}
+              alt="Logo preview"
+              className="h-20 w-20 object-contain"
+            />
+          </div>
+        )}
         {errors.logo && <p className="text-red-500 text-sm">{errors.logo}</p>}
         {uploadStatus && (
           <p className="text-green-500 text-sm">{uploadStatus}</p>
@@ -215,13 +230,24 @@ export default function Step2LogoIndustries({
           type="url"
           value={formData.website || ""}
           onChange={(e) => {
+            let value = e.target.value;
+
+            // If user is backspacing and value is just "https://", clear it
+            if (value === "https://") {
+              value = "";
+            }
+            // If value is empty, don't add prefix
+            else if (value && !value.startsWith("http")) {
+              value = `https://${value}`;
+            }
+
             setFormData((prev: any) => ({
               ...prev,
-              website: e.target.value,
+              website: value,
             }));
             setErrors((prev) => ({ ...prev, website: undefined }));
           }}
-          placeholder="https://example.com"
+          placeholder="example.com"
         />
         {errors.website && (
           <p className="text-red-500 text-sm">{errors.website}</p>

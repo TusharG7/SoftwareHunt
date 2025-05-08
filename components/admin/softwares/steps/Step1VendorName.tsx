@@ -72,7 +72,7 @@ export default function Step1VendorName({
     }
 
     // Call the API to check for duplicate software name
-    const checkRes = await checkSoftwareExistsByName(formData.software_name)
+    const checkRes = await checkSoftwareExistsByName(formData.software_name.trim())
     console.log("Software exists response:", checkRes)
 
     if (checkRes.exists) {

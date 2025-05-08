@@ -9,6 +9,8 @@ import Step5Testimonies from "./steps/Step5Testimonies";
 import Step6ReviewRatings from "./steps/Step6ReviewRatings";
 import Step7Snapshots from "./steps/Step7Snapshots";
 import { FormData } from '@/types/software';
+import { Button } from "@/components/ui/button";
+import { FiX } from "react-icons/fi";
 
 const AddSoftwareMultiStep = ({ setShowForm, onSuccess, preselectedVendor }: { setShowForm: any, onSuccess: any, preselectedVendor: any }) => {
   const [step, setStep] = useState(1);
@@ -118,6 +120,10 @@ const AddSoftwareMultiStep = ({ setShowForm, onSuccess, preselectedVendor }: { s
   return (
     <div className="fixed inset-0 py-20 overflow-scroll backdrop-brightness-20 z-10">
       <div className="w-full max-w-lg p-6 mx-auto border rounded-xl shadow-sm bg-white">
+        <div className="flex justify-between items-center mb-6 cursor-pointer rounded-full">
+          <h2 className="text-lg font-semibold">Add Software</h2>
+          <FiX onClick={() => setShowForm(false)} className="border border-gray-300 rounded-full p-1 w-8 h-8 hover:bg-gray-100" />
+        </div>
         <div className="w-full bg-gray-200 h-2 rounded-full mb-6">
           <div
             className={`h-full bg-indigo-500 rounded-full transition-all`}

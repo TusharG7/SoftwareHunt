@@ -109,18 +109,70 @@ const ClientWrapper = ({
     e.preventDefault();
     if (!selectedVendor) return;
 
+    // Validate required fields
+    if (!selectedVendor.name.trim()) {
+      toast.error("Vendor name is required");
+      return;
+    }
+
+    if (!selectedVendor.email.trim()) {
+      toast.error("Email is required");
+      return;
+    }
+
+    // Validate email format
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(selectedVendor.email)) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
+    // Validate website if provided
+    if (selectedVendor.website) {
+      // Add https:// if not present
+      let websiteUrl = selectedVendor.website;
+      if (!websiteUrl.startsWith('http://') && !websiteUrl.startsWith('https://')) {
+        websiteUrl = `https://${websiteUrl}`;
+      }
+
+      // Check if URL has a valid domain suffix
+      try {
+        const url = new URL(websiteUrl);
+        const hasValidSuffix = url.hostname.includes('.');
+        if (!hasValidSuffix) {
+          toast.error("Please enter a valid website URL with a domain suffix (e.g., .com, .org, .in)");
+          return;
+        }
+        // Update the website with the proper format
+        selectedVendor.website = websiteUrl;
+      } catch (error) {
+        toast.error("Please enter a valid website URL");
+        return;
+      }
+    }
+
+    // Validate company description
+    if (!selectedVendor.companyDescription.trim()) {
+      toast.error("Company description is required");
+      return;
+    }
+
+    // Validate year founded
+    if (!selectedVendor.yearFounded) {
+      toast.error("Founded year is required");
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await updateVendor(
         selectedVendor.vendor_id,
         selectedVendor
-      ); // Replace with your API call
+      );
       if (response.message) {
         toast.success("Vendor updated successfully!");
 
-        const updatedVendor = await fetchVendorById(selectedVendor.vendor_id); // Replace with your API call to fetch a single vendor
-        // Update the vendor in the table
-        console.log("updatedVendor", updatedVendor);
+        const updatedVendor = await fetchVendorById(selectedVendor.vendor_id);
         setAllVendors((prev) =>
           prev.map((vendor) =>
             vendor.vendor_id === updatedVendor.vendor_id
@@ -303,7 +355,7 @@ const ClientWrapper = ({
                   <Input
                     id="email"
                     type="email"
-                    disabled
+                    // disabled
                     value={selectedVendor.email}
                     onChange={(e) =>
                       setSelectedVendor({

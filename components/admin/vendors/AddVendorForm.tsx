@@ -20,6 +20,30 @@ import { Separator } from "@/components/ui/separator"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { addNewVendor, checkVendorExistsByEmail, fetchAllVendor } from "@/controllers/vendors.controller"
 import AddSoftwareMultiStep from "../softwares/AddSoftwareForm"
+import { z } from "zod"
+
+const vendorSchema = z.object({
+  name: z.string().nonempty("Vendor name is required."),
+  email: z.string().email("Please enter a valid email address."),
+  companyDescription: z.string().nonempty("Company description is required."),
+  website: z
+    .string()
+    .transform((val) => (val.startsWith("http") ? val : `https://${val}`))
+    .pipe(
+      z.string().refine(
+        (val) => {
+          try {
+            const url = new URL(val);
+            return url.hostname.includes("."); // Ensures there's a domain suffix
+          } catch {
+            return false;
+          }
+        },
+        "Please enter a valid website URL with a domain suffix (e.g., .com, .org, .in)"
+      )
+    ),
+  yearFounded: z.string().nonempty("Founded year is required."),
+});
 
 export function AddForm({ setAllVendors, setTotalCount, page, itemsPerPage }: { setAllVendors: any; setTotalCount: any, page: number, itemsPerPage: number }) {
   const isMobile = useIsMobile()
@@ -74,6 +98,50 @@ const [showAddSoftware, setShowAddSoftware] = useState(false);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+
+    // Validate the form data
+    const result = vendorSchema.safeParse({
+      name: vendor.name,
+      email: vendor.email,
+      companyDescription: vendor.companyDescription,
+      website: vendor.website,  
+      yearFounded: vendor.yearFounded
+    });
+
+    if (!result.success) {
+      // Show the first error message
+      const errorMessage = result.error.errors[0]?.message;
+      toast.error(errorMessage || "Please check your input.");
+      setLoading(false);
+      return;
+    }
+    
+    // Add website validation
+    if (vendor.website) {
+      // Add https:// if not present
+      let websiteUrl = vendor.website;
+      if (!websiteUrl.startsWith('http://') && !websiteUrl.startsWith('https://')) {
+        websiteUrl = `https://${websiteUrl}`;
+      }
+
+      // Check if URL has a valid domain suffix
+      try {
+        const url = new URL(websiteUrl);
+        const hasValidSuffix = url.hostname.includes('.');
+        if (!hasValidSuffix) {
+          toast.error("Please enter a valid website URL with a domain suffix (e.g., .com, .org, .in)");
+          setLoading(false);
+          return;
+        }
+        // Update the website with the proper format
+        vendor.website = websiteUrl;
+      } catch (error) {
+        toast.error("Please enter a valid website URL");
+        setLoading(false);
+        return;
+      }
+    }
+
     const randomPassword = Math.random().toString(36).slice(-10)
     const newVendor = { ...vendor, password: randomPassword }
 
@@ -93,9 +161,9 @@ const [showAddSoftware, setShowAddSoftware] = useState(false);
       setAllVendors(vendors)
       setTotalCount(totalcount)
 
-      console.log("response.message.vendor",response.vendor);
-      setLastCreatedVendor(response.vendor); // Make sure your backend returns the vendor object
-    setShowAddSoftware(true);
+      console.log("response.vendor",response.vendor);
+      setLastCreatedVendor(response.vendor);
+      setShowAddSoftware(true);
 
     } catch (error: any) {
       console.error("Error adding vendor:", error)

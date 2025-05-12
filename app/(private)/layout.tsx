@@ -46,7 +46,6 @@ export default async function RootLayout({
     >
       {session ? (
         <>
-        {session.user?.role === "ADMIN" && (
           <SessionProvider>
             <body className="font-open relative" suppressHydrationWarning>
               <SidebarProvider>
@@ -59,21 +58,7 @@ export default async function RootLayout({
               <Toaster />
             </body>
           </SessionProvider>
-        )}
-        {session.user?.role === "VENDOR" && (
-          <SessionProvider>
-            <body className="font-open" suppressHydrationWarning>
-              <SidebarProvider>
-                <AppSidebar variant="inset" />
-                <SidebarInset>
-                  <SiteHeader />
-                  {children}
-                </SidebarInset>
-              </SidebarProvider>
-              <Toaster />
-            </body>
-          </SessionProvider>
-        )}
+      
         </>
       ) : (
         <SessionProvider>

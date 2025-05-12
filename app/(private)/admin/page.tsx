@@ -5,6 +5,7 @@ import { SectionCards } from "@/components/section-cards"
 import data from "@/app/(private)/data.json"
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
+import { TrendingData } from "@/components/trending-data"
 
 export default async function page() {
   const session = await auth()
@@ -17,9 +18,10 @@ export default async function page() {
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
               <SectionCards />
               <div className="px-4 lg:px-6">
-                <ChartAreaInteractive />
+                {/* <ChartAreaInteractive /> */}
+                <TrendingData />
               </div>
-              <DataTable data={data} />
+              {/* <DataTable data={data} /> */}
             </div>
           </div>
         </div>

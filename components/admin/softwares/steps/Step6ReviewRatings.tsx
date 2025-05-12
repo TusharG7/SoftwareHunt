@@ -87,11 +87,20 @@ export default function Step6ReviewRatings({
   const handleContinue = () => {
     setFormData((prev: any) => ({
       ...prev,
-      pros,
-      cons,
-      ratings,
-    }))
-    onNext()
+      softwareHuntReview: {
+        pros,
+        cons,
+        what_we_think: formData.softwareHuntReview.what_we_think,
+        ratings: {
+          ease_of_use: ratings.ease_of_use,
+          scalability: ratings.scalability,
+          budget_friendly: ratings.budget_friendly,
+          customer_support: ratings.customer_support,
+          integration_flexibility: ratings.integration_flexibility
+        }
+      }
+    }));
+    onNext();
   }
 
   return (
@@ -175,8 +184,14 @@ export default function Step6ReviewRatings({
       <div className="flex flex-col gap-3">
         <Label>What We Think</Label>
         <Textarea
-          value={formData.what_we_think}
-          onChange={(e) => setFormData({ ...formData, what_we_think: e.target.value })}
+          value={formData.softwareHuntReview?.what_we_think || ''}
+          onChange={(e) => setFormData((prev: any) => ({
+            ...prev,
+            softwareHuntReview: {
+              ...prev.softwareHuntReview,
+              what_we_think: e.target.value
+            }
+          }))}
           className="bg-white"
           placeholder="Enter your thoughts..."
         />

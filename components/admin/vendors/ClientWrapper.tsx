@@ -40,21 +40,25 @@ import {
 } from "@/controllers/vendors.controller";
 import { Switch } from "@/components/ui/switch";
 
+type Vendor = {
+  vendor_id: string;
+  name: string;
+  email: string;
+  website: string;
+  yearFounded: string;
+  companyDescription: string;
+  status: string;
+  updatedAt: Date | null;
+  softwareCount: number;
+};
+
 const ClientWrapper = ({
   vendors,
   itemsPerPage,
   totalcount,
   page,
 }: {
-  vendors: {
-    vendor_id: string;
-    name: string;
-    email: string;
-    website: string;
-    yearFounded: string;
-    companyDescription: string;
-    status: string;
-  }[];
+  vendors: Vendor[];
   itemsPerPage: number;
   totalcount: number;
   page: number;
@@ -62,15 +66,7 @@ const ClientWrapper = ({
   const [currentPage, setCurrentPage] = useState(page);
   const [allVendors, setAllVendors] = useState(vendors);
   const [totalCount, setTotalCount] = useState(totalcount);
-  const [selectedVendor, setSelectedVendor] = useState<{
-    vendor_id: string;
-    name: string;
-    email: string;
-    website: string;
-    yearFounded: string;
-    companyDescription: string;
-    status: string;
-  } | null>(null);
+  const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
   const [loading, setLoading] = useState(false);
 
   const isMobile = useIsMobile();
@@ -80,6 +76,16 @@ const ClientWrapper = ({
 
   const currentYear = new Date().getFullYear();
   const yearOptions = Array.from({ length: 100 }, (_, i) => currentYear - i);
+
+  // Format the date to a relative time (e.g., "2 days ago")
+  const formatDate = (date: Date | null) => {
+    if (!date) return "N/A";
+    try {
+      return date.toLocaleString();
+    } catch (error) {
+      return "Invalid date";
+    }
+  };
 
   // Handle page change
   const handlePageChange = async (newPage: number) => {
@@ -92,15 +98,7 @@ const ClientWrapper = ({
   };
 
   // Handle row click to open the drawer with prefilled data
-  const handleRowClick = (vendor: {
-    vendor_id: string;
-    name: string;
-    email: string;
-    website: string;
-    yearFounded: string;
-    companyDescription: string;
-    status: string;
-  }) => {
+  const handleRowClick = (vendor: Vendor) => {
     setSelectedVendor(vendor);
   };
 
@@ -176,7 +174,11 @@ const ClientWrapper = ({
         setAllVendors((prev) =>
           prev.map((vendor) =>
             vendor.vendor_id === updatedVendor.vendor_id
-              ? updatedVendor
+              ? { 
+                  ...updatedVendor,
+                  softwareCount: vendor.softwareCount, // Preserve software count
+                  updatedAt: new Date() // Update the timestamp
+                }
               : vendor
           )
         );
@@ -197,8 +199,6 @@ const ClientWrapper = ({
   // Handle status toggle
   const handleStatusToggle = async (vendorId: string, newStatus: string) => {
     try {
-      // Simulate API call to update the vendor's status
-      // Replace this with your actual API call
       const response = await updateVendor(vendorId, { status: newStatus });
       if (response.message) {
         toast.success("Vendor status updated successfully!");
@@ -207,7 +207,11 @@ const ClientWrapper = ({
         setAllVendors((prev) =>
           prev.map((vendor) =>
             vendor.vendor_id === vendorId
-              ? { ...vendor, status: newStatus }
+              ? { 
+                  ...vendor, 
+                  status: newStatus,
+                  updatedAt: new Date() // Update the timestamp
+                }
               : vendor
           )
         );
@@ -238,17 +242,17 @@ const ClientWrapper = ({
         <Table>
           <TableHeader>
             <TableRow>
-              {/* <TableHead>ID</TableHead> */}
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Website</TableHead>
+              <TableHead>Softwares Registered</TableHead>
+              <TableHead>Last Updated</TableHead>
               <TableHead>Status</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {allVendors?.map((vendor) => (
               <TableRow key={vendor.vendor_id}>
-                {/* <TableCell onClick={() => handleRowClick(vendor)} className="cursor-pointer">{vendor.vendor_id}</TableCell> */}
                 <TableCell>
                   <button
                     className="cursor-pointer"
@@ -269,6 +273,12 @@ const ClientWrapper = ({
                   </a>
                 </TableCell>
                 <TableCell>
+                  {vendor.softwareCount || 0}
+                </TableCell>
+                <TableCell>
+                  {formatDate(vendor.updatedAt)}
+                </TableCell>
+                <TableCell>
                   <Switch
                     checked={vendor.status === "ACTIVE"}
                     onCheckedChange={(checked) =>
@@ -286,9 +296,10 @@ const ClientWrapper = ({
       </div>
 
       {/* Pagination */}
-      <Pagination className="mt-10">
-        <PaginationContent>
-          <PaginationItem>
+      {totalPages > 1 && (
+        <Pagination className="mt-10">
+          <PaginationContent>
+            <PaginationItem>
             <PaginationPrevious
               href="#"
               onClick={(e) => {
@@ -322,6 +333,7 @@ const ClientWrapper = ({
           </PaginationItem>
         </PaginationContent>
       </Pagination>
+      )}
 
       {/* Edit Vendor Drawer */}
       {selectedVendor && (
@@ -355,7 +367,6 @@ const ClientWrapper = ({
                   <Input
                     id="email"
                     type="email"
-                    // disabled
                     value={selectedVendor.email}
                     onChange={(e) =>
                       setSelectedVendor({
@@ -415,19 +426,17 @@ const ClientWrapper = ({
                     }
                   />
                 </div>
-                {/* <div className="flex flex-col gap-3">
-                  <Label htmlFor="status">Status</Label>
-                  <Input
-                    id="status"
-                    value={selectedVendor.status}
-                    onChange={(e) =>
-                      setSelectedVendor({
-                        ...selectedVendor,
-                        status: e.target.value,
-                      })
-                    }
-                  />
-                </div> */}
+                {/* Display software count (read-only) */}
+                {selectedVendor.softwareCount !== undefined && (
+                  <div className="flex flex-col gap-3">
+                    <Label htmlFor="softwareCount">Softwares Registered</Label>
+                    <Input
+                      id="softwareCount"
+                      value={selectedVendor.softwareCount}
+                      disabled
+                    />
+                  </div>
+                )}
                 <div className="flex flex-col gap-3">
                   <Label htmlFor="status">Status</Label>
                   <select

@@ -90,21 +90,24 @@ export default function Step7Snapshots({
         );
       }
 
+      
       // 2. Build the new formData with updated snapshots
       const finalFormData = {
         ...formData,
+        slug: slug,
         snapshots: {
           images: uploadedImageUrls,
           video: uploadedVideoUrl,
         },
       };
+      console.log('finalFormData - ', finalFormData);
 
       // 3. Optionally update state for UI (not required for submission)
       setFormData(finalFormData);
 
       // 4. Now call the controller to add the software
       const result = await addNewSoftware(finalFormData);
-
+      console.log('result - ', result);
       if (result.success) {
         setShowForm(false);
         toast.success("Software added successfully!");

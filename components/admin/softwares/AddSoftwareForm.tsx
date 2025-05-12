@@ -18,6 +18,7 @@ const AddSoftwareMultiStep = ({ setShowForm, onSuccess, preselectedVendor }: { s
     vendor: null,
     vendor_id: preselectedVendor?.id || "",
     software_name: "",
+    slug: "",
     logo: null,
     description: "",
     industries: [],

@@ -181,10 +181,10 @@ export default function Step2LogoIndustries({
               return;
             }
 
-            if (file.size > 500 * 1024) {
+            if (file.size > 100 * 1024) {
               setErrors((prev) => ({
                 ...prev,
-                logo: "Image size must not exceed 500KB.",
+                logo: "Image size must not exceed 100KB.",
               }));
               return;
             }

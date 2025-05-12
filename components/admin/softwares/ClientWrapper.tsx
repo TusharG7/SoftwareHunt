@@ -35,7 +35,10 @@ interface Software {
   status: string | null;
   isFree: boolean | null;
   industries: { id: string; name: string; }[] | null;
+  businessNeeds: { id: string; name: string; }[] | null;
   updatedAt: Date | null;
+  views?: number;
+  leads?: number;
 }
 
 interface ClientWrapperProps {
@@ -135,15 +138,17 @@ const ClientWrapper = ({
       )}
 
       {/* Software Table */}
-      {/* Software Table */}
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Software</TableHead>
-              <TableHead>Description</TableHead>
+              {/* <TableHead>Description</TableHead> */}
               <TableHead>Industries</TableHead>
+              <TableHead>Business Needs</TableHead>
               <TableHead>Pricing</TableHead>
+              <TableHead>Views</TableHead>
+              <TableHead>Leads</TableHead>
               <TableHead
                 className="cursor-pointer"
                 onClick={() => handleSort("status")}
@@ -163,7 +168,7 @@ const ClientWrapper = ({
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center">
+                <TableCell colSpan={9} className="text-center">
                   <div className="flex justify-center items-center py-4">
                     <Loader2 className="h-6 w-6 animate-spin" />
                   </div>
@@ -171,83 +176,103 @@ const ClientWrapper = ({
               </TableRow>
             ) : softwares.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-4">
+                <TableCell colSpan={9} className="text-center py-4">
                   No software found
                 </TableCell>
               </TableRow>
             ) : (
-              softwares.map((software) => (
-                <TableRow key={software.softwareId}>
-                  <TableCell>
-                    <div className="flex items-center gap-5">
-                      {software.logo ? (
-                        <Image
-                          src={software.logo}
-                          alt={software.softwareName}
-                          className="w-10 h-10 rounded object-contain"
-                          width={40}
-                          height={40}
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded bg-gray-200 flex items-center justify-center">
-                          <span className="text-gray-500 text-xs">No logo</span>
-                        </div >
-                      )}
-                      <div className="flex flex-col">
-                        <span className="font-medium">
-                          {software.softwareName}
-                        </span>
-                        {software.website && (
-                          <a
-                            href={software.website}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 text-sm hover:underline"
-                          >
-                            Visit Website
-                          </a>
+              softwares.map((software) => {
+                const randomViews = software.views || Math.floor(Math.random() * 10000) + 100;
+                const randomLeads = software.leads || Math.floor(Math.random() * 100) + 5;
+                
+                return (
+                  <TableRow key={software.softwareId}>
+                    <TableCell>
+                      <div className="flex items-center gap-5">
+                        {software.logo ? (
+                          <Image
+                            src={software.logo}
+                            alt={software.softwareName}
+                            className="w-10 h-10 rounded object-contain"
+                            width={40}
+                            height={40}
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded bg-gray-200 flex items-center justify-center">
+                            <span className="text-gray-500 text-xs">No logo</span>
+                          </div >
                         )}
+                        <div className="flex flex-col">
+                          <span className="font-medium">
+                            {software.softwareName}
+                          </span>
+                          {software.website && (
+                            <a
+                              href={software.website}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 text-sm hover:underline"
+                            >
+                              Visit Website
+                            </a>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div
-                      className="max-w-xs truncate"
-                      title={software?.description || ""}
-                    >
-                      {software.description}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {software?.industries?.map((industry) => (
-                        <Badge key={industry.id} variant="secondary">
-                          {industry.name}
-                        </Badge>
-                      ))}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={software?.isFree ? "secondary" : "default"}>
-                      {software.isFree ? "Free" : "Paid"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        software.status === "ACTIVE" ? "default" : "destructive"
-                      }
-                    >
-                      {software.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {software?.updatedAt
-                      ? new Date(software.updatedAt).toLocaleDateString()
-                      : ""}
-                  </TableCell>
-                </TableRow>
-              ))
+                    </TableCell>
+                    {/* <TableCell>
+                      <div
+                        className="max-w-xs truncate"
+                        title={software?.description || ""}
+                      >
+                        {software.description}
+                      </div>
+                    </TableCell> */}
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {software?.industries?.map((industry) => (
+                          <Badge key={industry.id} variant="secondary">
+                            {industry.name}
+                          </Badge>
+                        ))}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {software?.businessNeeds?.map((need) => (
+                          <Badge key={need.id} variant="outline">
+                            {need.name}
+                          </Badge>
+                        )) || "None"}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={software?.isFree ? "secondary" : "default"}>
+                        {software.isFree ? "Free" : "Paid"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm font-medium">{randomViews.toLocaleString()}</span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm font-medium">{randomLeads.toLocaleString()}</span>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          software.status === "ACTIVE" ? "default" : "destructive"
+                        }
+                      >
+                        {software.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {software?.updatedAt
+                        ? new Date(software.updatedAt).toLocaleDateString()
+                        : ""}
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>

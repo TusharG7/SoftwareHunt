@@ -45,7 +45,7 @@ export default function Step5Testimonies({
   // Only use features that were selected in Step 3
   const selectedFeatures = (formData.key_features || [])
     .map((feature: any) => ({
-      featureId: feature.featureId || `new_${feature.name}`,
+      featureId: feature.featureId,
       name: feature.name
     }));
 
@@ -56,7 +56,7 @@ export default function Step5Testimonies({
   // Create options array for features using only selected features
   const featureOptions = selectedFeatures.map(f => ({ 
     label: f.name, 
-    value: f.featureId 
+    value: f.featureId
   }));
 
   const addTestimony = () => {
@@ -68,7 +68,11 @@ export default function Step5Testimonies({
 
   const handleChange = (index: number, field: keyof Testimony, value: any) => {
     const updated = [...testimonies];
-    updated[index][field] = value;
+    if (field === 'featuresBenefitted') {
+      updated[index][field] = value;
+    } else {
+      updated[index][field] = value;
+    }
     setTestimonies(updated);
   };
 

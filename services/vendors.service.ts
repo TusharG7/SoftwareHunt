@@ -1,7 +1,7 @@
 import { db } from "@/database/drizzle";
-import { vendorTable } from "@/database/schema";
+import { vendorTable, softwareTable } from "@/database/schema";
 import bcrypt from "bcryptjs";
-import { eq, count } from "drizzle-orm";
+import { eq, count, desc } from "drizzle-orm";
 import { year } from "drizzle-orm/mysql-core";
 
 // Define a type for the vendor data
@@ -66,7 +66,6 @@ export async function addNewVendor(data: VendorData & { companyDescription: stri
   }
 }
 
-
 export async function getAllVendors({
   page = 1,
   itemsPerPage = 10,
@@ -74,12 +73,32 @@ export async function getAllVendors({
   page?: number;
   itemsPerPage?: number;
 }): Promise<{
-  vendors: { vendor_id: string; name: string; email: string; website: string; yearFounded:string; companyDescription:string; status: string }[];
+  vendors: { 
+    vendor_id: string; 
+    name: string; 
+    email: string; 
+    website: string; 
+    yearFounded: string; 
+    companyDescription: string; 
+    status: string;
+    updatedAt: Date | null;
+    softwareCount: number;
+  }[];
   totalcount: number;
   page: number;
 }> {
   try {
     const offset = (page - 1) * itemsPerPage;
+
+    // Subquery to count software per vendor
+    const softwareCountSubquery = db
+      .select({
+        vendorId: softwareTable.vendorId,
+        count: count().as("count"),
+      })
+      .from(softwareTable)
+      .groupBy(softwareTable.vendorId)
+      .as('software_counts');
 
     // Query to fetch vendors with pagination
     const vendorsQuery = db
@@ -91,11 +110,17 @@ export async function getAllVendors({
         yearFounded: vendorTable.foundedYear,
         companyDescription: vendorTable.companyDescription,
         status: vendorTable.status,
+        updatedAt: vendorTable.updatedAt,
+        softwareCount: softwareCountSubquery.count,
       })
       .from(vendorTable)
+      .leftJoin(
+        softwareCountSubquery,
+        eq(vendorTable.vendorId, softwareCountSubquery.vendorId)
+      )
       .limit(itemsPerPage)
       .offset(offset)
-      .orderBy(vendorTable.email);
+      .orderBy(desc(vendorTable.updatedAt));
 
     // Query to count the total number of vendors
     const countQuery = db
@@ -105,12 +130,18 @@ export async function getAllVendors({
     // Execute both queries
     const [vendors, countResult] = await Promise.all([vendorsQuery, countQuery]);
 
+    // Process vendors to handle null software counts
+    const processedVendors = vendors.map(vendor => ({
+      ...vendor,
+      softwareCount: vendor.softwareCount || 0,
+    }));
+
     // Extract the total count from the count query result
     const totalcount = countResult[0]?.count || 0;
 
     // Return the result
     return {
-      vendors,
+      vendors: processedVendors,
       totalcount,
       page,
     };

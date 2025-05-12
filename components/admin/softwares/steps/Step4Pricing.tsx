@@ -25,6 +25,8 @@ const DURATION_OPTIONS = [
   { value: "per user per year", label: "Per User Per Year" }
 ];
 
+const CURRENCY_SYMBOL = "₹";
+
 export default function Step4Pricing({
   formData,
   setFormData,
@@ -46,14 +48,14 @@ export default function Step4Pricing({
   // Only use features that were selected in Step 3
   const selectedFeatures = (formData.key_features || [])
     .map((feature: any) => ({
-      featureId: feature.featureId || `new_${feature.name}`,
+      featureId: feature.featureId,
       name: feature.name
     }));
 
   // Create options array for the badges
   const availableFeatures = selectedFeatures.map(f => ({ 
     label: f.name, 
-    value: f.featureId 
+    value: f.featureId
   }));
 
   const handleAddTier = () => {
@@ -80,7 +82,7 @@ export default function Step4Pricing({
       // Otherwise, ensure it's a valid number
       newTiers[index] = { 
         ...newTiers[index], 
-        [field]: value === "unlimited" ? "unlimited" : value 
+        [field]: value === "unlimited" ? "10000" : value 
       };
     } else {
       newTiers[index] = { ...newTiers[index], [field]: value };
@@ -88,13 +90,13 @@ export default function Step4Pricing({
     setPricingTiers(newTiers);
   };
 
-  const toggleFeatureInTier = (tierIndex: number, feature: string) => {
+  const toggleFeatureInTier = (tierIndex: number, featureId: string) => {
     const newTiers = [...pricingTiers]
     const tier = newTiers[tierIndex]
-    const featureIndex = tier.features.indexOf(feature)
+    const featureIndex = tier.features.indexOf(featureId)
     
     if (featureIndex === -1) {
-      tier.features.push(feature)
+      tier.features.push(featureId)
     } else {
       tier.features.splice(featureIndex, 1)
     }
@@ -157,13 +159,22 @@ export default function Step4Pricing({
                   />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <Label>Price</Label>
-                  <Input
-                    type="number"
-                    value={tier.price}
-                    onChange={(e) => handleTierChange(index, "price", e.target.value)}
-                    placeholder="e.g., 99"
-                  />
+                  <Label>Price (in Indian Rupees)</Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                      {CURRENCY_SYMBOL}
+                    </span>
+                    <Input
+                      type="number"
+                      value={tier.price}
+                      onChange={(e) => handleTierChange(index, "price", e.target.value)}
+                      placeholder="e.g., 999"
+                      className="pl-8"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    All prices are in Indian Rupees (₹)
+                  </p>
                 </div>
                 <div className="flex flex-col gap-2">
                   <Label>Duration</Label>

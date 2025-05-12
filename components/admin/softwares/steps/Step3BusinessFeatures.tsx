@@ -54,6 +54,12 @@ export default function Step3BusinessFeatures({
 
   const handleAdd = (key: string) => {
     if (!newName) return;
+    
+    // Check if business need is selected for pain points and features
+    if ((key === "pain_points" || key === "key_features") && associations.length === 0) {
+      alert("Please select a business need before adding a pain point or feature");
+      return;
+    }
 
     if (key === "business_needs") {
       const newBusinessNeed: BusinessNeed = {
@@ -70,8 +76,8 @@ export default function Step3BusinessFeatures({
       const newPainPoint: PainPoint = {
         painPointId: `new_${Date.now()}`,
         name: newName,
-        businessNeedsId: '',
-        associations: associations
+        businessNeedsId: associations[0], // Only take the first selected business need
+        associations: [associations[0]] // Store only one association
       };
       setFormData((prev: FormData) => ({
         ...prev,
@@ -81,8 +87,8 @@ export default function Step3BusinessFeatures({
       const newFeature: Feature = {
         featureId: `new_${Date.now()}`,
         name: newName,
-        businessNeedsId: '',
-        associations: associations
+        businessNeedsId: associations[0], // Only take the first selected business need
+        associations: [associations[0]] // Store only one association
       };
       setFormData((prev: FormData) => ({
         ...prev,
@@ -130,12 +136,15 @@ export default function Step3BusinessFeatures({
       return found ? found.name : id
     })
 
-    const newPainPoints: PainPoint[] = selectedNames.map(name => ({
-      painPointId: `new_${name}`,
-      name,
-      businessNeedsId: '',
-      associations: []
-    }))
+    const newPainPoints: PainPoint[] = selectedNames.map(name => {
+      const existingPainPoint = formData.pain_points.find(pp => pp.name === name);
+      return {
+        painPointId: `new_${name}`,
+        name,
+        businessNeedsId: existingPainPoint?.businessNeedsId || '', // Preserve existing business need
+        associations: existingPainPoint?.associations || [] // Preserve existing associations
+      };
+    });
 
     setFormData((prev: FormData) => ({
       ...prev,
@@ -149,18 +158,34 @@ export default function Step3BusinessFeatures({
       return found ? found.name : id
     })
 
-    const newFeatures: Feature[] = selectedNames.map(name => ({
-      featureId: `new_${name}`,
-      name,
-      businessNeedsId: '',
-      associations: []
-    }))
+    const newFeatures: Feature[] = selectedNames.map(name => {
+      const existingFeature = formData.key_features.find(f => f.name === name);
+      return {
+        featureId: existingFeature?.featureId || `new_${Date.now()}`,
+        name,
+        businessNeedsId: existingFeature?.businessNeedsId || '',
+        associations: existingFeature?.associations || []
+      };
+    });
 
     setFormData((prev: FormData) => ({
       ...prev,
       key_features: newFeatures
     }))
   }
+
+  // Add validation before proceeding to next step
+  const handleNext = () => {
+    const invalidPainPoints = formData.pain_points.some(pp => !pp.businessNeedsId);
+    const invalidFeatures = formData.key_features.some(f => !f.businessNeedsId);
+
+    // if (invalidPainPoints || invalidFeatures) {
+    //   alert("Please ensure all pain points and features are associated with a business need");
+    //   return;
+    // }
+
+    onNext();
+  };
 
   return (
     <div className="flex flex-col mt-3">
@@ -210,7 +235,6 @@ export default function Step3BusinessFeatures({
         <MultiSelect
           options={painPoints.map(pp => ({ label: pp.name, value: pp.painPointId }))}
           selectedValues={(formData.pain_points || []).map((item: any) => {
-            // Find the pain point by name to get its ID for the select component
             const found = painPoints.find(pp => pp.name === item.name);
             return found ? found.painPointId : item.name;
           })}
@@ -224,15 +248,24 @@ export default function Step3BusinessFeatures({
 
         {addingField === "pain_points" && (
           <div className="flex flex-col gap-2 mt-2 border p-2 bg-blue-50">
-            <Input className="bg-white" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="New Pain Point..." />
-            <Label>Select Associated Business Needs</Label>
+            <Input 
+              className="bg-white" 
+              value={newName} 
+              onChange={(e) => setNewName(e.target.value)} 
+              placeholder="New Pain Point..." 
+            />
+            <Label className="text-red-500">* Select Associated Business Need (Required)</Label>
             <MultiSelect
               options={allBusinessNeeds.map(bn => ({ label: bn.name, value: bn.businessNeedsId }))}
               selectedValues={associations}
-              onChange={setAssociations}
-              placeholder="Select Business Needs..."
+              onChange={(values) => setAssociations(values.slice(0, 1))} // Only allow one selection
+              placeholder="Select Business Need..."
             />
-            <Button className="mt-2" onClick={() => handleAdd("pain_points")}>
+            <Button 
+              className="mt-2" 
+              onClick={() => handleAdd("pain_points")}
+              disabled={!newName || associations.length === 0}
+            >
               Save Pain Point
             </Button>
           </div>
@@ -240,8 +273,19 @@ export default function Step3BusinessFeatures({
 
         <div className="flex flex-wrap gap-2">
           {(formData.pain_points || []).map((pain: any) => (
-            <Badge key={pain.name} onClick={() => handleRemove("pain_points", pain.name)} variant="secondary" className="shadow cursor-pointer">
-              {pain.name} ✕
+            <Badge 
+              key={pain.name} 
+              onClick={() => handleRemove("pain_points", pain.name)} 
+              variant="secondary" 
+              className="shadow cursor-pointer"
+            >
+              {pain.name}
+              {pain.businessNeedsId && (
+                <span className="ml-1 text-xs text-muted-foreground">
+                  ({allBusinessNeeds.find(bn => bn.businessNeedsId === pain.businessNeedsId)?.name})
+                </span>
+              )}
+              ✕
             </Badge>
           ))}
         </div>
@@ -254,7 +298,6 @@ export default function Step3BusinessFeatures({
         <MultiSelect
           options={keyFeatures.map(f => ({ label: f.name, value: f.featureId }))}
           selectedValues={(formData.key_features || []).map((item: any) => {
-            // Find the feature by name to get its ID for the select component
             const found = keyFeatures.find(f => f.name === item.name);
             return found ? found.featureId : item.name;
           })}
@@ -268,15 +311,24 @@ export default function Step3BusinessFeatures({
 
         {addingField === "key_features" && (
           <div className="flex flex-col gap-2 mt-2 border p-2 bg-blue-50">
-            <Input className="bg-white" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="New Key Feature..." />
-            <Label>Select Associated Business Needs</Label>
+            <Input 
+              className="bg-white" 
+              value={newName} 
+              onChange={(e) => setNewName(e.target.value)} 
+              placeholder="New Key Feature..." 
+            />
+            <Label className="text-red-500">* Select Associated Business Need (Required)</Label>
             <MultiSelect
               options={allBusinessNeeds.map(bn => ({ label: bn.name, value: bn.businessNeedsId }))}
               selectedValues={associations}
-              onChange={setAssociations}
-              placeholder="Select Business Needs..."
+              onChange={(values) => setAssociations(values.slice(0, 1))} // Only allow one selection
+              placeholder="Select Business Need..."
             />
-            <Button className="mt-2" onClick={() => handleAdd("key_features")}>
+            <Button 
+              className="mt-2" 
+              onClick={() => handleAdd("key_features")}
+              disabled={!newName || associations.length === 0}
+            >
               Save Key Feature
             </Button>
           </div>
@@ -284,8 +336,19 @@ export default function Step3BusinessFeatures({
 
         <div className="flex flex-wrap gap-2 mt-3">
           {(formData.key_features || []).map((feat: any) => (
-            <Badge key={feat.name} onClick={() => handleRemove("key_features", feat.name)} variant="secondary" className="cursor-pointer">
-              {feat.name} ✕
+            <Badge 
+              key={feat.name} 
+              onClick={() => handleRemove("key_features", feat.name)} 
+              variant="secondary" 
+              className="cursor-pointer"
+            >
+              {feat.name}
+              {feat.businessNeedsId && (
+                <span className="ml-1 text-xs text-muted-foreground">
+                  ({allBusinessNeeds.find(bn => bn.businessNeedsId === feat.businessNeedsId)?.name})
+                </span>
+              )}
+              ✕
             </Badge>
           ))}
         </div>
@@ -295,7 +358,7 @@ export default function Step3BusinessFeatures({
         <Button variant="outline" onClick={onBack}>
           Back
         </Button>
-        <Button onClick={onNext}>
+        <Button onClick={handleNext}>
           Next
         </Button>
       </div>

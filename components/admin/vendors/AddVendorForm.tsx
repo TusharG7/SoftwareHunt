@@ -142,7 +142,7 @@ const [showAddSoftware, setShowAddSoftware] = useState(false);
       }
     }
 
-    const randomPassword = Math.random().toString(36).slice(-10)
+    const randomPassword = vendor.name + '_' + vendor.yearFounded
     const newVendor = { ...vendor, password: randomPassword }
 
     try {

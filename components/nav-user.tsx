@@ -39,24 +39,24 @@ export function NavUser() {
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton
-              size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+            <SidebarMenu
+              // size="lg"
+              className="border-0 border-t py-2"
             >
-              <Avatar className="h-8 w-8 rounded-lg grayscale">
+              {/* <Avatar className="h-8 w-8 rounded-lg grayscale"> */}
                 {/* <AvatarImage src={user.avatar} alt={user.name} /> */}
-                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
-              </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
+                {/* <AvatarFallback className="rounded-lg">CN</AvatarFallback> */}
+              {/* </Avatar> */}
+              <div className="grid flex-1 text-center text-sm leading-tight">
                 <span className="truncate font-medium">{session?.user?.name}</span>
-                <span className="text-muted-foreground truncate text-xs">
+                <span className="text-xs">
                   {session?.user?.email}
                 </span>
               </div>
-              <IconDotsVertical className="ml-auto size-4" />
-            </SidebarMenuButton>
+              {/* <IconDotsVertical className="ml-auto size-4" /> */}
+            </SidebarMenu>
           </DropdownMenuTrigger>
-          <DropdownMenuContent
+          {/* <DropdownMenuContent
             className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
             side={isMobile ? "bottom" : "right"}
             align="end"
@@ -65,7 +65,6 @@ export function NavUser() {
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  {/* <AvatarImage src={session?.user?.avatar} alt={session?.user?.name} /> */}
                   <AvatarFallback className="rounded-lg">CN</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
@@ -96,7 +95,7 @@ export function NavUser() {
               <IconLogout />
               Log out
             </DropdownMenuItem>
-          </DropdownMenuContent>
+          </DropdownMenuContent> */}
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>

@@ -146,7 +146,7 @@ const ClientWrapper = ({
               {/* <TableHead>Description</TableHead> */}
               <TableHead>Industries</TableHead>
               <TableHead>Business Needs</TableHead>
-              <TableHead>Pricing</TableHead>
+              {/* <TableHead>Pricing</TableHead> */}
               <TableHead>Views</TableHead>
               <TableHead>Leads</TableHead>
               <TableHead
@@ -245,11 +245,11 @@ const ClientWrapper = ({
                         )) || "None"}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    {/* <TableCell>
                       <Badge variant={software?.isFree ? "secondary" : "default"}>
                         {software.isFree ? "Free" : "Paid"}
                       </Badge>
-                    </TableCell>
+                    </TableCell> */}
                     <TableCell>
                       <span className="text-sm font-medium">{randomViews.toLocaleString()}</span>
                     </TableCell>

@@ -188,7 +188,7 @@ const ClientWrapper = ({
                 return (
                   <TableRow key={software.softwareId}>
                     <TableCell>
-                      <div className="flex items-center gap-5">
+                      <div className="flex items-center gap-5 w-max pr-2">
                         {software.logo ? (
                           <Image
                             src={software.logo}
@@ -228,7 +228,7 @@ const ClientWrapper = ({
                       </div>
                     </TableCell> */}
                     <TableCell>
-                      <div className="flex flex-wrap gap-1">
+                      <div className="flex flex-wrap gap-1 w-min pr-2">
                         {software?.industries?.map((industry) => (
                           <Badge key={industry.id} variant="secondary">
                             {industry.name}
@@ -237,7 +237,7 @@ const ClientWrapper = ({
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-wrap gap-1">
+                      <div className="flex flex-wrap gap-1 w-min pr-2">
                         {software?.businessNeeds?.map((need) => (
                           <Badge key={need.id} variant="outline">
                             {need.name}

@@ -2,6 +2,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { Switch } from "@/components/ui/switch";
+import { updateSoftwareStatus } from "@/controllers/software.controller";
 import {
   Table,
   TableBody,
@@ -34,8 +36,8 @@ interface Software {
   description: string | null;
   status: string | null;
   isFree: boolean | null;
-  industries: { id: string; name: string; }[] | null;
-  businessNeeds: { id: string; name: string; }[] | null;
+  industries: { id: string; name: string }[] | null;
+  businessNeeds: { id: string; name: string }[] | null;
   updatedAt: Date | null;
   views?: number;
   leads?: number;
@@ -102,6 +104,33 @@ const ClientWrapper = ({
     toast.success("Software added successfully!");
   };
 
+  const handleStatusToggle = async (softwareId: string, newStatus: string) => {
+    try {
+      const response = await updateSoftwareStatus(softwareId, newStatus);
+      if (response.success) {
+        toast.success("Software status updated successfully!");
+
+        // Update the software status in the table
+        setSoftwares((prev) =>
+          prev.map((software) =>
+            software.softwareId === softwareId
+              ? {
+                  ...software,
+                  status: newStatus,
+                  updatedAt: new Date(),
+                }
+              : software
+          )
+        );
+      } else {
+        toast.error("Failed to update software status.");
+      }
+    } catch (error) {
+      console.error("Error updating software status:", error);
+      toast.error("An unexpected error occurred.");
+    }
+  };
+
   const totalPages = Math.ceil(totalCount / itemsPerPage);
 
   return (
@@ -150,7 +179,7 @@ const ClientWrapper = ({
               <TableHead>Views</TableHead>
               <TableHead>Leads</TableHead>
               <TableHead
-                className="cursor-pointer"
+                className="cursor-pointer text-center"
                 onClick={() => handleSort("status")}
               >
                 Status{" "}
@@ -182,9 +211,11 @@ const ClientWrapper = ({
               </TableRow>
             ) : (
               softwares.map((software) => {
-                const randomViews = software.views || Math.floor(Math.random() * 10000) + 100;
-                const randomLeads = software.leads || Math.floor(Math.random() * 100) + 5;
-                
+                const randomViews =
+                  software.views || Math.floor(Math.random() * 10000) + 100;
+                const randomLeads =
+                  software.leads || Math.floor(Math.random() * 100) + 5;
+
                 return (
                   <TableRow key={software.softwareId}>
                     <TableCell>
@@ -199,8 +230,10 @@ const ClientWrapper = ({
                           />
                         ) : (
                           <div className="w-10 h-10 rounded bg-gray-200 flex items-center justify-center">
-                            <span className="text-gray-500 text-xs">No logo</span>
-                          </div >
+                            <span className="text-gray-500 text-xs">
+                              No logo
+                            </span>
+                          </div>
                         )}
                         <div className="flex flex-col">
                           <span className="font-medium">
@@ -251,19 +284,39 @@ const ClientWrapper = ({
                       </Badge>
                     </TableCell> */}
                     <TableCell>
-                      <span className="text-sm font-medium">{randomViews.toLocaleString()}</span>
+                      <span className="text-sm font-medium">
+                        {randomViews.toLocaleString()}
+                      </span>
                     </TableCell>
                     <TableCell>
-                      <span className="text-sm font-medium">{randomLeads.toLocaleString()}</span>
+                      <span className="text-sm font-medium">
+                        {randomLeads.toLocaleString()}
+                      </span>
                     </TableCell>
                     <TableCell>
-                      <Badge
-                        variant={
-                          software.status === "ACTIVE" ? "default" : "destructive"
-                        }
+                      <div className="flex justify-center">
+                        <Badge
+                          variant={
+                            software.status === "ACTIVE"
+                              ? "active"
+                              : "destructive"
+                          }
                       >
                         {software.status}
-                      </Badge>
+                        </Badge>
+                      </div>
+                      <div className="flex justify-center">
+                      <Switch
+                        className="my-2 cursor-pointer"
+                        checked={software.status === "ACTIVE"}
+                        onCheckedChange={(checked) =>
+                          handleStatusToggle(
+                            software.softwareId,
+                            checked ? "ACTIVE" : "INACTIVE"
+                          )
+                        }
+                      />
+                      </div>
                     </TableCell>
                     <TableCell>
                       {software?.updatedAt

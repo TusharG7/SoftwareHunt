@@ -3,6 +3,7 @@ import { vendorTable, softwareTable } from "@/database/schema";
 import bcrypt from "bcryptjs";
 import { eq, count, desc } from "drizzle-orm";
 import { year } from "drizzle-orm/mysql-core";
+import { updateVendorSoftwareStatus } from "./software.service";
 
 // Define a type for the vendor data
 interface VendorData {
@@ -12,7 +13,9 @@ interface VendorData {
   password: string;
 }
 
-export async function checkVendorExistsByEmail(email: string): Promise<boolean> {
+export async function checkVendorExistsByEmail(
+  email: string
+): Promise<boolean> {
   try {
     const existingVendor = await db
       .select()
@@ -27,8 +30,11 @@ export async function checkVendorExistsByEmail(email: string): Promise<boolean> 
   }
 }
 
-export async function addNewVendor(data: VendorData & { companyDescription: string; yearFounded: string }): Promise<{ success: boolean; message: string, vendor: any }> {
-  const { name, email, website, password, companyDescription, yearFounded } = data;
+export async function addNewVendor(
+  data: VendorData & { companyDescription: string; yearFounded: string }
+): Promise<{ success: boolean; message: string; vendor: any }> {
+  const { name, email, website, password, companyDescription, yearFounded } =
+    data;
 
   try {
     // Check if a vendor with the same email already exists
@@ -39,27 +45,38 @@ export async function addNewVendor(data: VendorData & { companyDescription: stri
       .limit(1);
 
     if (existingVendor.length > 0) {
-      return { success: false, message: "Vendor with this email already exists.", vendor: null };
+      return {
+        success: false,
+        message: "Vendor with this email already exists.",
+        vendor: null,
+      };
     }
 
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Insert the new vendor into the vendorTable
-    const vendor = await db.insert(vendorTable).values({
-      name,
-      email,
-      password: hashedPassword, // Save the hashed password
-      website,
-      companyDescription,
-      foundedYear: yearFounded, // Save the year founded
-      role: "VENDOR", // Default role for vendors
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }).returning();
+    const vendor = await db
+      .insert(vendorTable)
+      .values({
+        name,
+        email,
+        password: hashedPassword, // Save the hashed password
+        website,
+        companyDescription,
+        foundedYear: yearFounded, // Save the year founded
+        role: "VENDOR", // Default role for vendors
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
 
     // Return a generic success message
-    return { success: true, message: "Vendor added successfully.", vendor: vendor[0] };
+    return {
+      success: true,
+      message: "Vendor added successfully.",
+      vendor: vendor[0],
+    };
   } catch (error) {
     console.error("Error adding new vendor:", error);
     throw new Error("" + error);
@@ -73,13 +90,13 @@ export async function getAllVendors({
   page?: number;
   itemsPerPage?: number;
 }): Promise<{
-  vendors: { 
-    vendor_id: string; 
-    name: string; 
-    email: string; 
-    website: string; 
-    yearFounded: string; 
-    companyDescription: string; 
+  vendors: {
+    vendor_id: string;
+    name: string;
+    email: string;
+    website: string;
+    yearFounded: string;
+    companyDescription: string;
     status: string;
     updatedAt: Date | null;
     softwareCount: number;
@@ -98,7 +115,7 @@ export async function getAllVendors({
       })
       .from(softwareTable)
       .groupBy(softwareTable.vendorId)
-      .as('software_counts');
+      .as("software_counts");
 
     // Query to fetch vendors with pagination
     const vendorsQuery = db
@@ -123,15 +140,16 @@ export async function getAllVendors({
       .orderBy(desc(vendorTable.updatedAt));
 
     // Query to count the total number of vendors
-    const countQuery = db
-      .select({ count: count() })
-      .from(vendorTable);
+    const countQuery = db.select({ count: count() }).from(vendorTable);
 
     // Execute both queries
-    const [vendors, countResult] = await Promise.all([vendorsQuery, countQuery]);
+    const [vendors, countResult] = await Promise.all([
+      vendorsQuery,
+      countQuery,
+    ]);
 
     // Process vendors to handle null software counts
-    const processedVendors = vendors.map(vendor => ({
+    const processedVendors = vendors.map((vendor) => ({
       ...vendor,
       softwareCount: vendor.softwareCount || 0,
     }));
@@ -162,12 +180,12 @@ export async function getVendorsOptions(): Promise<{
       })
       .from(vendorTable)
       .where(eq(vendorTable.status, "ACTIVE"))
-      .orderBy(vendorTable.name)
+      .orderBy(vendorTable.name);
 
-    return { vendors }
+    return { vendors };
   } catch (error) {
-    console.error("Error fetching vendors:", error)
-    throw new Error("Failed to fetch vendors.")
+    console.error("Error fetching vendors:", error);
+    throw new Error("Failed to fetch vendors.");
   }
 }
 
@@ -200,7 +218,8 @@ export async function updateVendorDetails(
     if (updates.email) updateData["email"] = updates.email;
     if (updates.website) updateData["website"] = updates.website;
     if (updates.yearFounded) updateData["foundedYear"] = updates.yearFounded;
-    if (updates.companyDescription) updateData["companyDescription"] = updates.companyDescription;
+    if (updates.companyDescription)
+      updateData["companyDescription"] = updates.companyDescription;
     if (updates.status) updateData["status"] = updates.status;
 
     // Update the vendor in the database
@@ -208,6 +227,11 @@ export async function updateVendorDetails(
       .update(vendorTable)
       .set(updateData)
       .where(eq(vendorTable.vendorId, vendorId));
+
+     // If status is being updated, also update status of all software by this vendor
+     if (updates.status) {
+      await updateVendorSoftwareStatus(vendorId, updates.status);
+    }
 
     return { success: true, message: "Vendor details updated successfully." };
   } catch (error) {

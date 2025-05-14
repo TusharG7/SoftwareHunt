@@ -101,6 +101,8 @@ export const pricingTable = pgTable("pricing", {
   duration: varchar("duration", { length: 20 }),
   features: jsonb("features").$type<string[]>(),
   maxUsers: integer("max_users"),
+  discount: decimal("discount", { precision: 10, scale: 2 }),
+  isDiscounted: boolean("is_discounted").default(false),
 });
 
 export const testimonyTable = pgTable("testimony", {

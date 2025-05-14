@@ -435,3 +435,51 @@ export async function getAllSoftware({
     throw new Error("Failed to fetch software.");
   }
 }
+
+export async function updateSoftwareStatus(
+  softwareId: string,
+  status: string
+): Promise<{ success: boolean; message: string }> {
+  try {
+    // Update the software status
+    await db
+      .update(softwareTable)
+      .set({ status })
+      .where(eq(softwareTable.softwareId, softwareId));
+
+    return { success: true, message: "Software status updated successfully." };
+  } catch (error) {
+    console.error("Error updating software status:", error);
+    return { success: false, message: "Failed to update software status." };
+  }
+}
+
+export async function updateVendorSoftwareStatus(
+  vendorId: string,
+  status: string
+): Promise<{ success: boolean; message: string; count: number }> {
+  try {
+    // Get all software for this vendor
+    const software = await db
+      .select({ softwareId: softwareTable.softwareId })
+      .from(softwareTable)
+      .where(eq(softwareTable.vendorId, vendorId));
+    
+    // Update status for all software
+    if (software.length > 0) {
+      await db
+        .update(softwareTable)
+        .set({ status, updatedAt: new Date() })
+        .where(eq(softwareTable.vendorId, vendorId));
+    }
+
+    return { 
+      success: true, 
+      message: `${software.length} software status(es) updated successfully.`,
+      count: software.length
+    };
+  } catch (error) {
+    console.error("Error updating vendor's software status:", error);
+    return { success: false, message: "Failed to update software status.", count: 0 };
+  }
+}

@@ -496,7 +496,7 @@ export async function getSoftwareBySlug(slug: string) {
       .limit(1);
 
     if (!software.length) {
-      return { error: 'Software not found' };
+      return { status:404, error: 'Software not found', data:null };
     }
 
     // Get related data using the stored IDs
@@ -554,7 +554,8 @@ export async function getSoftwareBySlug(slug: string) {
         pricing_tiers: pricingTiers,
         testimonies: testimonies,
         softwareHuntReview: review[0] || null
-      }
+      },
+      status:200
     };
   } catch (error) {
     console.log('Error in getSoftwareBySlug:', error);

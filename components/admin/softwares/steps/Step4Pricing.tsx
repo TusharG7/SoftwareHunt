@@ -67,6 +67,8 @@ export default function Step4Pricing({
         duration: "",
         maxUsers: "",
         features: [],
+        isDiscounted: false,
+        discount: "",
       },
     ])
   }
@@ -75,14 +77,14 @@ export default function Step4Pricing({
     setPricingTiers(pricingTiers.filter((_, i) => i !== index))
   }
 
-  const handleTierChange = (index: number, field: keyof PricingTier, value: string) => {
+  const handleTierChange = (index: number, field: keyof PricingTier, value: string | boolean) => {
     const newTiers = [...pricingTiers];
     if (field === "maxUsers") {
       // If value is "unlimited", set it directly
       // Otherwise, ensure it's a valid number
       newTiers[index] = { 
         ...newTiers[index], 
-        [field]: value === "unlimited" ? "10000" : value 
+        [field as string]: value === "unlimited" ? "10000" : value 
       };
     } else {
       newTiers[index] = { ...newTiers[index], [field]: value };
@@ -175,6 +177,31 @@ export default function Step4Pricing({
                   <p className="text-xs text-muted-foreground mt-1">
                     All prices are in Indian Rupees (₹)
                   </p>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id={`discount-${index}`}
+                      checked={tier.isDiscounted}
+                      onCheckedChange={(checked) => handleTierChange(index, "isDiscounted", checked)}
+                    />
+                    <Label htmlFor={`discount-${index}`}>Apply Discount</Label>
+                  </div>
+                  
+                  {tier.isDiscounted && (
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="number"
+                        value={tier.discount}
+                        onChange={(e) => handleTierChange(index, "discount", e.target.value)}
+                        placeholder="Discount %"
+                        className="w-24"
+                        min="0"
+                        max="100"
+                      />
+                      <span className="text-sm text-gray-500">% off</span>
+                    </div>
+                  )}
                 </div>
                 <div className="flex flex-col gap-2">
                   <Label>Duration</Label>

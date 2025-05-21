@@ -29,6 +29,8 @@ export interface Vendor {
     duration: string;
     maxUsers: string;
     features: string[];
+    isDiscounted: boolean;  // New field
+  discount: string;  // New field
   }
   
   export interface Testimony {

@@ -95,14 +95,24 @@ export default function Step2LogoIndustries({
   };
 
   const handleNext = () => {
-    // Validate form data with Zod
+    // Validate TLD before proceeding
+    const tldRegex = /\.(com|org|net|edu|gov|mil|biz|info|io|ai|in|co|me|app|dev)$/i;
+    if (formData.website && !tldRegex.test(formData.website)) {
+      setErrors((prev) => ({
+        ...prev,
+        website: "Please enter a valid domain with TLD (e.g., .com, .org, .ai)"
+      }));
+      return; // Stop here if TLD is invalid
+    }
+  
+    // Rest of the validation
     const result = step2Schema.safeParse({
       logo: localLogoFile || undefined,
       description: formData.description || "",
       website: formData.website || "",
       industries: selectedIndustries,
     });
-
+  
     if (!result.success) {
       const fieldErrors: {
         logo?: string;
@@ -112,15 +122,14 @@ export default function Step2LogoIndustries({
       } = {};
       result.error.errors.forEach((err) => {
         if (err.path[0] === "logo") fieldErrors.logo = err.message;
-        if (err.path[0] === "description")
-          fieldErrors.description = err.message;
+        if (err.path[0] === "description") fieldErrors.description = err.message;
         if (err.path[0] === "website") fieldErrors.website = err.message;
         if (err.path[0] === "industries") fieldErrors.industries = err.message;
       });
       setErrors(fieldErrors);
       return;
     }
-
+  
     setErrors({});
     setFormData((prev: any) => ({
       ...prev,
@@ -241,11 +250,21 @@ export default function Step2LogoIndustries({
               value = `https://${value}`;
             }
 
+            // Validate TLD
+            const tldRegex = /\.(com|org|net|edu|gov|mil|biz|info|io|ai|in|co|me|app|dev)$/i;
+            if (value && !tldRegex.test(value)) {
+              setErrors((prev) => ({ 
+                ...prev, 
+                website: "Please enter a valid domain with TLD (e.g., .com, .org, .ai)" 
+              }));
+            } else {
+              setErrors((prev) => ({ ...prev, website: undefined }));
+            }
+
             setFormData((prev: any) => ({
               ...prev,
               website: value,
             }));
-            setErrors((prev) => ({ ...prev, website: undefined }));
           }}
           placeholder="example.com"
         />

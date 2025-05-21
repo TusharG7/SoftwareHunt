@@ -1,6 +1,6 @@
 import { db } from "@/database/drizzle";
 import { softwareTable, industryTable, businessNeedsTable, painPointsTable, featuresTable, pricingTable, testimonyTable, reviewTable } from "@/database/schema";
-import { eq, and, count, asc, desc } from "drizzle-orm";
+import { eq, and, count, asc, desc, inArray } from "drizzle-orm";
 
 /**
  * Checks if a software with the given name already exists.
@@ -204,6 +204,7 @@ export async function addSoftware(formData: any) {
     const [software] = await db.insert(softwareTable).values({
       vendorId: formData.vendor_id,
       softwareName: formData.software_name,
+      slug:formData.slug,
       logo: formData.logo,
       website: formData.website || null,
       description: formData.description,
@@ -259,6 +260,8 @@ export async function addSoftware(formData: any) {
             softwareId: software.softwareId,
             tierName: tier.tierName,
             price: tier.price,
+            isDiscounted: tier.isDiscounted,
+            discount: tier.discount,
             duration: tier.duration,
             features: validFeatureIds,
             maxUsers: tier.maxUsers,
@@ -481,5 +484,80 @@ export async function updateVendorSoftwareStatus(
   } catch (error) {
     console.error("Error updating vendor's software status:", error);
     return { success: false, message: "Failed to update software status.", count: 0 };
+  }
+}
+
+export async function getSoftwareBySlug(slug: string) {
+  try {
+    const software = await db
+      .select()
+      .from(softwareTable)
+      .where(eq(softwareTable.slug, slug))
+      .limit(1);
+
+    if (!software.length) {
+      return { error: 'Software not found' };
+    }
+
+    // Get related data using the stored IDs
+    const [features, painPoints, businessNeeds, pricingTiers, testimonies, review] = await Promise.all([
+      // Get features using the stored feature IDs
+      db.select()
+        .from(featuresTable)
+        .where(inArray(featuresTable.featureId, software[0].features || [])),
+      
+      // Get pain points using the stored pain point IDs
+      db.select()
+        .from(painPointsTable)
+        .where(inArray(painPointsTable.painPointId, software[0].painPoints || [])),
+      
+      // Get business needs using the stored business need IDs
+      db.select()
+        .from(businessNeedsTable)
+        .where(inArray(businessNeedsTable.businessNeedsId, software[0].businessNeeds || [])),
+      
+      // Get pricing tiers for this software
+      db.select()
+        .from(pricingTable)
+        .where(eq(pricingTable.softwareId, software[0].softwareId)),
+      
+      // Get testimonies for this software
+      db.select()
+        .from(testimonyTable)
+        .where(eq(testimonyTable.softwareId, software[0].softwareId)),
+      
+      // Get review for this software
+      db.select()
+        .from(reviewTable)
+        .where(eq(reviewTable.softwareId, software[0].softwareId))
+        .limit(1)
+    ]);
+
+    // console.log('data - ',
+    //   {
+    //     ...software[0],
+    //     key_features: features,
+    //     pain_points: painPoints,
+    //     business_needs: businessNeeds,
+    //     pricing_tiers: pricingTiers,
+    //     testimonies: testimonies,
+    //     softwareHuntReview: review[0] || null
+    //   }
+    // )
+
+    return {
+      data: {
+        ...software[0],
+        key_features: features,
+        pain_points: painPoints,
+        business_needs: businessNeeds,
+        pricing_tiers: pricingTiers,
+        testimonies: testimonies,
+        softwareHuntReview: review[0] || null
+      }
+    };
+  } catch (error) {
+    console.log('Error in getSoftwareBySlug:', error);
+    return { error: 'Failed to fetch software details' };
   }
 }

@@ -71,7 +71,7 @@ export const softwareTable = pgTable("softwares",
     .references(() => vendorTable.vendorId, { onDelete: "cascade" }),
 
   softwareName: varchar("software_name", { length: 255 }).notNull(),
-
+  slug: text('slug'),
   logo: text("logo"),
   website: varchar("website", { length: 255 }),
   description: text("description").notNull(),
@@ -80,7 +80,6 @@ export const softwareTable = pgTable("softwares",
   painPoints: jsonb("pain_points").$type<string[]>(),
   features: jsonb("features").$type<string[]>(),
   isFree: boolean("is_free").default(false),
-
   snapshots: jsonb("snapshots").$type<{
     images: string[];
     video: string | null;
@@ -117,8 +116,8 @@ export const testimonyTable = pgTable("testimony", {
 export const reviewTable = pgTable("reviews", {
   reviewId: uuid("review_id").notNull().primaryKey().defaultRandom().unique(),
   softwareId: uuid("software_id").notNull().references(() => softwareTable.softwareId, { onDelete: "cascade" }),
-  pros: text("pros").notNull(),
-  cons: text("cons").notNull(),
+  pros: jsonb("pros").$type<string[]>(), // Changed to array
+  cons: jsonb("cons").$type<string[]>(), // Changed to array
   whatWeThink: text("what_we_think").notNull(),
   // Ratings
   easeOfUse: integer("ease_of_use").notNull(),

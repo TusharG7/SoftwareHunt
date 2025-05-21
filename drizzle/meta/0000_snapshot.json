@@ -1,5 +1,5 @@
 {
-  "id": "3ae87e30-142c-4177-bf7b-7573f6e6d85c",
+  "id": "a10cc3ce-bf0c-4fd3-8ac4-d084c00f8311",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -370,6 +370,19 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": false
+        },
+        "discount": {
+          "name": "discount",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_discounted": {
+          "name": "is_discounted",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
         }
       },
       "indexes": {},
@@ -421,15 +434,15 @@
         },
         "pros": {
           "name": "pros",
-          "type": "text",
+          "type": "jsonb",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "cons": {
           "name": "cons",
-          "type": "text",
+          "type": "jsonb",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "what_we_think": {
           "name": "what_we_think",
@@ -520,6 +533,12 @@
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
+        },
+        "slug": {
+          "name": "slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "logo": {
           "name": "logo",

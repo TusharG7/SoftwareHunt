@@ -54,14 +54,16 @@ CREATE TABLE "pricing" (
 	"duration" varchar(20),
 	"features" jsonb,
 	"max_users" integer,
+	"discount" numeric(10, 2),
+	"is_discounted" boolean DEFAULT false,
 	CONSTRAINT "pricing_pricing_id_unique" UNIQUE("pricing_id")
 );
 --> statement-breakpoint
 CREATE TABLE "reviews" (
 	"review_id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"software_id" uuid NOT NULL,
-	"pros" text NOT NULL,
-	"cons" text NOT NULL,
+	"pros" jsonb,
+	"cons" jsonb,
 	"what_we_think" text NOT NULL,
 	"ease_of_use" integer NOT NULL,
 	"scalability" integer NOT NULL,
@@ -75,6 +77,7 @@ CREATE TABLE "softwares" (
 	"software_id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"vendor_id" uuid NOT NULL,
 	"software_name" varchar(255) NOT NULL,
+	"slug" text,
 	"logo" text,
 	"website" varchar(255),
 	"description" text NOT NULL,

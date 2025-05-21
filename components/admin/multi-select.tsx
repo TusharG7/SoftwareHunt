@@ -69,13 +69,13 @@ export function MultiSelect({
               >
                 <div
                   className={cn(
-                    "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                    "mr-2 flex h-4 w-4 items-center justify-center rounded-full border border-primary",
                     selectedValues.includes(option.value)
-                      ? "bg-primary text-primary-foreground"
+                      ? "bg-black text-white"
                       : "opacity-50 [&_svg]:invisible"
                   )}
                 >
-                  <Check className="h-4 w-4" />
+                  <Check className="h-3 w-3 text-white p-[2px]" />
                 </div>
                 {option.label}
               </CommandItem>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "@/app/globals.css";
+import Nav from "@/components/frontend/Nav";
 
 const dmSans = localFont({
   src: [
@@ -41,7 +42,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${dmSans.variable} ${openSans.variable} ${nunitoSans.variable}`}>
-      <body className="font-open" suppressHydrationWarning>
+      <body className="font-open lg:px-20 xl:px-36" suppressHydrationWarning>
+        <Nav/>
         {children}
       </body>
     </html>

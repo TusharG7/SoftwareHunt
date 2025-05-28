@@ -1,7 +1,7 @@
 'use client'
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-platinum flex items-center justify-center rounded-4xl mb-6 my-2 px-4">
+    <div className="mx-20 xl:mx-36 min-h-screen bg-platinum flex items-center justify-center rounded-4xl mb-6 my-2">
       <div className="max-w-md w-full text-center">
         {/* Large 404 number */}
         <div className="mb-8">

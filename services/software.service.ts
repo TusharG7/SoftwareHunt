@@ -197,8 +197,34 @@ export async function addSoftware(formData: any) {
       }
     }
 
-    console.log('FeatureMap:', Object.fromEntries(featureMap.entries()));
-    console.log('Features in software:', featureIds);
+    // Get Overall Rating
+
+    let overallRating = 0.0;
+    if (formData.softwareHuntReview && formData.softwareHuntReview.ratings) {
+      const ratings = formData.softwareHuntReview.ratings;
+      
+      // Extract the 5 rating values (each out of 5)
+      const ratingValues = [
+        parseFloat(ratings.ease_of_use) || 0,
+        parseFloat(ratings.scalability) || 0,
+        parseFloat(ratings.budget_friendly) || 0,
+        parseFloat(ratings.customer_support) || 0,
+        parseFloat(ratings.integration_flexibility) || 0
+      ];
+      
+      // Calculate average of the 5 ratings (result will be out of 5)
+      const averageOutOf5 = ratingValues.reduce((sum, rating) => sum + rating, 0) / ratingValues.length;
+      
+      // Scale to out of 10 and round to 1 decimal place
+      const scaledRating = (averageOutOf5 / 5) * 10;
+      overallRating = Math.round(scaledRating * 10) / 10; // Round to 1 decimal place
+      
+      console.log(`Rating calculation:`, {
+        individualRatings: ratingValues,
+        averageOutOf5,
+        scaledRating: overallRating
+      });
+    }
 
     // 5. Create Software
     const [software] = await db.insert(softwareTable).values({
@@ -217,6 +243,7 @@ export async function addSoftware(formData: any) {
         images: formData.snapshots?.images || [],
         video: formData.snapshots?.video || null,
       },
+      overallRating:overallRating
     }).returning();
 
     // 6. Add Pricing Plans if software is not free
@@ -251,21 +278,56 @@ export async function addSoftware(formData: any) {
           // Filter out any null values
           const validFeatureIds = actualFeatureIds.filter(Boolean);
 
+          // Handle discount value properly
+          let discountValue = null;
+          if (tier.isDiscounted && tier.discount !== "" && tier.discount !== null && tier.discount !== undefined) {
+            const parsedDiscount = parseFloat(tier.discount);
+            if (!isNaN(parsedDiscount)) {
+              discountValue = parsedDiscount;
+            }
+          }
+
+          // Handle price value properly
+          let priceValue = 0;
+          if (tier.price !== "" && tier.price !== null && tier.price !== undefined) {
+            const parsedPrice = parseFloat(tier.price);
+            if (!isNaN(parsedPrice)) {
+              priceValue = parsedPrice;
+            }
+          }
+
+          // Handle maxUsers value properly
+          let maxUsersValue = null;
+          if (tier.maxUsers && tier.maxUsers !== "" && tier.maxUsers !== "unlimited") {
+            const parsedMaxUsers = parseInt(tier.maxUsers);
+            if (!isNaN(parsedMaxUsers)) {
+              maxUsersValue = parsedMaxUsers;
+            }
+          } else if (tier.maxUsers === "unlimited" || tier.maxUsers === "10000") {
+            maxUsersValue = 10000; // Set to a large number for unlimited
+          }
+
           console.log(`For pricing tier "${tier.tierName}":`, {
             originalFeatures: tier.features,
-            mappedFeatures: validFeatureIds
+            mappedFeatures: validFeatureIds,
+            discountValue,
+            priceValue,
+            maxUsersValue
           });
-
-          return db.insert(pricingTable).values({
+          const pricingData = {
             softwareId: software.softwareId,
-            tierName: tier.tierName,
-            price: tier.price,
-            isDiscounted: tier.isDiscounted,
-            discount: tier.discount,
-            duration: tier.duration,
+            tierName: tier.tierName || '',
+            price: priceValue.toString(),
+            duration: tier.duration || null,
             features: validFeatureIds,
-            maxUsers: tier.maxUsers,
-          });
+            maxUsers: maxUsersValue,
+            discount: discountValue?.toString() || null,
+            isDiscounted: Boolean(tier.isDiscounted),
+          };
+          
+          console.log(`Inserting pricing data for tier "${tier.tierName}":`, pricingData);
+          
+          return db.insert(pricingTable).values(pricingData);
         })
       );
     }
@@ -310,6 +372,8 @@ export async function addSoftware(formData: any) {
           return db.insert(testimonyTable).values({
             softwareId: software.softwareId,
             userName: testimony.userName,
+            companyName: testimony.companyName,
+            designation: testimony.designation,
             industry: testimony.industry || '',
             features: validFeatureIds,
             testimony: testimony.text,

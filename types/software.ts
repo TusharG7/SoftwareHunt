@@ -25,7 +25,7 @@ export interface Vendor {
   
   export interface PricingTier {
     tierName: string;
-    price: string;
+    price: number;
     duration: string;
     maxUsers: string;
     features: string[];
@@ -35,6 +35,8 @@ export interface Vendor {
   
   export interface Testimony {
     userName: string;
+    companyName: string;
+    designation: string;
     industry: string;
     text: string;
     featuresBenefitted: string[];

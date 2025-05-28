@@ -42,7 +42,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${dmSans.variable} ${openSans.variable} ${nunitoSans.variable}`}>
-      <body className="font-open lg:px-20 xl:px-36" suppressHydrationWarning>
+      <body className="font-open" suppressHydrationWarning>
         <Nav/>
         {children}
       </body>

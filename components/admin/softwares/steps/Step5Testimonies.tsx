@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { MultiSelect } from "@/components/admin/multi-select";
 import { fetchIndustriesOptions } from "@/controllers/industries.controller";
 import { fetchFeaturesOptions } from "@/controllers/features.controller";
-import { FormData, SetFormData, Testimony } from '@/types/software';
+import { FormData, SetFormData, Testimony } from "@/types/software";
 
 interface Props {
   formData: FormData;
@@ -23,8 +23,12 @@ export default function Step5Testimonies({
   onNext,
   onBack,
 }: Props) {
-  const [testimonies, setTestimonies] = useState<Testimony[]>(formData.testimonies || []);
-  const [industries, setIndustries] = useState<{ industryId: string, name: string }[]>([]);
+  const [testimonies, setTestimonies] = useState<Testimony[]>(
+    formData.testimonies || []
+  );
+  const [industries, setIndustries] = useState<
+    { industryId: string; name: string }[]
+  >([]);
 
   useEffect(() => {
     async function loadOptions() {
@@ -36,39 +40,50 @@ export default function Step5Testimonies({
 
   // Get newly added industries from Step 2
   const newIndustries = (formData.industries || [])
-    .filter((industry: any) => typeof industry === 'object' && industry.name)
+    .filter((industry: any) => typeof industry === "object" && industry.name)
     .map((industry: any) => ({
       industryId: `new_${industry.name}`,
-      name: industry.name
+      name: industry.name,
     }));
 
   // Only use features that were selected in Step 3
-  const selectedFeatures = (formData.key_features || [])
-    .map((feature: any) => ({
+  const selectedFeatures = (formData.key_features || []).map(
+    (feature: any) => ({
       featureId: feature.featureId,
-      name: feature.name
-    }));
+      name: feature.name,
+    })
+  );
 
   // Combine database and newly added industries
   const allIndustries = [...industries, ...newIndustries];
-  const industryOptions = allIndustries.map(i => ({ label: i.name, value: i.industryId }));
-  
+  const industryOptions = allIndustries.map((i) => ({
+    label: i.name,
+    value: i.industryId,
+  }));
+
   // Create options array for features using only selected features
-  const featureOptions = selectedFeatures.map(f => ({ 
-    label: f.name, 
-    value: f.featureId
+  const featureOptions = selectedFeatures.map((f) => ({
+    label: f.name,
+    value: f.featureId,
   }));
 
   const addTestimony = () => {
     setTestimonies([
       ...testimonies,
-      { userName: "", industry: "", text: "", featuresBenefitted: [] },
+      {
+        userName: "",
+        companyName: "",
+        designation: "",
+        industry: "",
+        text: "",
+        featuresBenefitted: [],
+      },
     ]);
   };
 
   const handleChange = (index: number, field: keyof Testimony, value: any) => {
     const updated = [...testimonies];
-    if (field === 'featuresBenefitted') {
+    if (field === "featuresBenefitted") {
       updated[index][field] = value;
     } else {
       updated[index][field] = value;
@@ -85,14 +100,14 @@ export default function Step5Testimonies({
     setTestimonies(newTestimonies);
     setFormData((prev: FormData) => ({
       ...prev,
-      testimonies: newTestimonies
+      testimonies: newTestimonies,
     }));
   };
 
   const handleContinue = () => {
     setFormData((prev: FormData) => ({
       ...prev,
-      testimonies
+      testimonies,
     }));
     onNext();
   };
@@ -126,6 +141,32 @@ export default function Step5Testimonies({
                   handleChange(index, "userName", e.target.value)
                 }
                 placeholder="Enter user name"
+              />
+            </div>
+
+            {/* Company Name field */}
+            <div className="flex flex-col gap-3">
+              <Label>Company Name</Label>
+              <Input
+                value={item.companyName}
+                className="bg-white"
+                onChange={(e) =>
+                  handleChange(index, "companyName", e.target.value)
+                }
+                placeholder="Enter company name"
+              />
+            </div>
+
+            {/* Designation field */}
+            <div className="flex flex-col gap-3">
+              <Label>Designation</Label>
+              <Input
+                value={item.designation}
+                className="bg-white"
+                onChange={(e) =>
+                  handleChange(index, "designation", e.target.value)
+                }
+                placeholder="Enter designation (e.g., CEO, Manager)"
               />
             </div>
 

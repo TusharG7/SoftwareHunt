@@ -86,21 +86,34 @@ export const softwareTable = pgTable("softwares",
   }>().default({ images: [], video: null } as const),
   
   status: varchar("status", { length: 10 }).default("ACTIVE"),
+  overallRating: decimal("overall_rating", { precision: 2, scale: 1 })
+  .$type<number>(),
 
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 
 });
 
+// export const pricingTable = pgTable("pricing", {
+//   pricingId: uuid("pricing_id").notNull().primaryKey().defaultRandom().unique(),
+//   softwareId: uuid("software_id").notNull().references(() => softwareTable.softwareId, { onDelete: "cascade" }),
+//   tierName: varchar("tier_name", { length: 100 }).notNull(),
+//   price: decimal("price", { precision: 10, scale: 2 }),
+//   duration: varchar("duration", { length: 20 }),
+//   features: jsonb("features").$type<string[]>(),
+//   maxUsers: integer("max_users"),
+//   discount: decimal("discount", { precision: 10, scale: 2 }),
+//   isDiscounted: boolean("is_discounted").default(false),
+// });
 export const pricingTable = pgTable("pricing", {
   pricingId: uuid("pricing_id").notNull().primaryKey().defaultRandom().unique(),
   softwareId: uuid("software_id").notNull().references(() => softwareTable.softwareId, { onDelete: "cascade" }),
   tierName: varchar("tier_name", { length: 100 }).notNull(),
   price: decimal("price", { precision: 10, scale: 2 }),
   duration: varchar("duration", { length: 20 }),
-  features: jsonb("features").$type<string[]>(),
+  features: jsonb("features").$type<string[]>().default([]),
   maxUsers: integer("max_users"),
-  discount: decimal("discount", { precision: 10, scale: 2 }),
+  discount: decimal("discount", { precision: 5, scale: 2 }), // Allow NULL
   isDiscounted: boolean("is_discounted").default(false),
 });
 
@@ -108,6 +121,8 @@ export const testimonyTable = pgTable("testimony", {
   testimonyId: uuid("testimony_id").notNull().primaryKey().defaultRandom().unique(),
   softwareId: uuid("software_id").notNull().references(() => softwareTable.softwareId, { onDelete: "cascade" }),
   userName: varchar("user_name", { length: 255 }).notNull(),
+  companyName: varchar("company_name"),
+  designation: varchar("designation"),
   industry: varchar("industry", { length: 255 }).notNull(),
   features: jsonb("features").$type<string[]>(),
   testimony: text("testimony").notNull(),

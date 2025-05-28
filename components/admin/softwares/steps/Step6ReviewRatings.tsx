@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
@@ -32,17 +32,29 @@ export default function Step6ReviewRatings({
   onNext: () => void
   onBack: () => void
 }) {
-  const [pros, setPros] = useState<string[]>(formData.pros || []);
-  const [cons, setCons] = useState<string[]>(formData.cons || []);
+  const [pros, setPros] = useState<string[]>(formData.softwareHuntReview?.pros || []);
+  const [cons, setCons] = useState<string[]>(formData.softwareHuntReview?.cons || []);
   const [newPro, setNewPro] = useState("");
   const [newCon, setNewCon] = useState("");
-  const [ratings, setRatings] = useState(formData.ratings || {
+  const [ratings, setRatings] = useState(formData.softwareHuntReview?.ratings || {
     ease_of_use: 0,
     scalability: 0,
     budget_friendly: 0,
     customer_support: 0,
     integration_flexibility: 0
   });
+
+  useEffect(() => {
+    setFormData((prev: any) => ({
+      ...prev,
+      softwareHuntReview: {
+        ...prev.softwareHuntReview,
+        pros,
+        cons,
+        ratings
+      }
+    }));
+  }, [pros, cons, ratings]);
 
   const handleAddPro = () => {
     if (newPro.trim()) {
@@ -88,9 +100,7 @@ export default function Step6ReviewRatings({
     setFormData((prev: any) => ({
       ...prev,
       softwareHuntReview: {
-        pros,
-        cons,
-        what_we_think: formData.softwareHuntReview.what_we_think,
+        ...prev.softwareHuntReview,
         ratings: {
           ease_of_use: ratings.ease_of_use,
           scalability: ratings.scalability,

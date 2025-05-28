@@ -1,18 +1,18 @@
-import React, { useState, useEffect } from "react"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
-import { Switch } from "@/components/ui/switch"
-import { Badge } from "@/components/ui/badge"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { fetchFeaturesOptions } from "@/controllers/features.controller"
-import { FormData, SetFormData, PricingTier } from '@/types/software'
+import React, { useState, useEffect } from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { fetchFeaturesOptions } from "@/controllers/features.controller";
+import { FormData, SetFormData, PricingTier } from "@/types/software";
 
 interface Props {
-  formData: FormData
-  setFormData: SetFormData
-  onNext: () => void
-  onBack: () => void
+  formData: FormData;
+  setFormData: SetFormData;
+  onNext: () => void;
+  onBack: () => void;
 }
 
 const DURATION_OPTIONS = [
@@ -22,7 +22,7 @@ const DURATION_OPTIONS = [
   { value: "per week", label: "Per Week" },
   { value: "one-time", label: "One Time" },
   { value: "per user per month", label: "Per User Per Month" },
-  { value: "per user per year", label: "Per User Per Year" }
+  { value: "per user per year", label: "Per User Per Year" },
 ];
 
 const CURRENCY_SYMBOL = "₹";
@@ -33,29 +33,34 @@ export default function Step4Pricing({
   onNext,
   onBack,
 }: Props) {
-  const [isFree, setIsFree] = useState(formData.is_free || false)
-  const [pricingTiers, setPricingTiers] = useState<PricingTier[]>(formData.pricing_tiers || [])
-  const [features, setFeatures] = useState<{ featureId: string, name: string }[]>([])
+  const [isFree, setIsFree] = useState(formData.is_free || false);
+  const [pricingTiers, setPricingTiers] = useState<PricingTier[]>(
+    formData.pricing_tiers || []
+  );
+  const [features, setFeatures] = useState<
+    { featureId: string; name: string }[]
+  >([]);
 
   useEffect(() => {
     async function loadFeatures() {
-      const res = await fetchFeaturesOptions()
-      if (res.features) setFeatures(res.features)
+      const res = await fetchFeaturesOptions();
+      if (res.features) setFeatures(res.features);
     }
-    loadFeatures()
-  }, [])
+    loadFeatures();
+  }, []);
 
   // Only use features that were selected in Step 3
-  const selectedFeatures = (formData.key_features || [])
-    .map((feature: any) => ({
+  const selectedFeatures = (formData.key_features || []).map(
+    (feature: any) => ({
       featureId: feature.featureId,
-      name: feature.name
-    }));
+      name: feature.name,
+    })
+  );
 
   // Create options array for the badges
-  const availableFeatures = selectedFeatures.map(f => ({ 
-    label: f.name, 
-    value: f.featureId
+  const availableFeatures = selectedFeatures.map((f) => ({
+    label: f.name,
+    value: f.featureId,
   }));
 
   const handleAddTier = () => {
@@ -63,28 +68,38 @@ export default function Step4Pricing({
       ...pricingTiers,
       {
         tierName: "",
-        price: "",
+        price: 0,
         duration: "",
         maxUsers: "",
         features: [],
         isDiscounted: false,
         discount: "",
       },
-    ])
-  }
+    ]);
+  };
 
   const handleRemoveTier = (index: number) => {
-    setPricingTiers(pricingTiers.filter((_, i) => i !== index))
-  }
+    setPricingTiers(pricingTiers.filter((_, i) => i !== index));
+  };
 
-  const handleTierChange = (index: number, field: keyof PricingTier, value: string | boolean) => {
+  const handleTierChange = (
+    index: number,
+    field: keyof PricingTier,
+    value: string | boolean | number
+  ) => {
     const newTiers = [...pricingTiers];
     if (field === "maxUsers") {
       // If value is "unlimited", set it directly
       // Otherwise, ensure it's a valid number
-      newTiers[index] = { 
-        ...newTiers[index], 
-        [field as string]: value === "unlimited" ? "10000" : value 
+      newTiers[index] = {
+        ...newTiers[index],
+        [field as string]: value === "unlimited" ? "10000" : value,
+      };
+    } else if (field === "price") {
+      const numValue = value === "" ? 0 : Number(value);
+      newTiers[index] = {
+        ...newTiers[index],
+        [field]: isNaN(numValue) ? 0 : numValue,
       };
     } else {
       newTiers[index] = { ...newTiers[index], [field]: value };
@@ -93,25 +108,25 @@ export default function Step4Pricing({
   };
 
   const toggleFeatureInTier = (tierIndex: number, featureId: string) => {
-    const newTiers = [...pricingTiers]
-    const tier = newTiers[tierIndex]
-    const featureIndex = tier.features.indexOf(featureId)
-    
+    const newTiers = [...pricingTiers];
+    const tier = newTiers[tierIndex];
+    const featureIndex = tier.features.indexOf(featureId);
+
     if (featureIndex === -1) {
-      tier.features.push(featureId)
+      tier.features.push(featureId);
     } else {
-      tier.features.splice(featureIndex, 1)
+      tier.features.splice(featureIndex, 1);
     }
-    
-    setPricingTiers(newTiers)
-  }
+
+    setPricingTiers(newTiers);
+  };
 
   const handlePricingChange = (tiers: PricingTier[]) => {
     setPricingTiers(tiers);
     setFormData((prev: FormData) => ({
       ...prev,
       pricing_tiers: tiers,
-      is_free: isFree
+      is_free: isFree,
     }));
   };
 
@@ -122,16 +137,12 @@ export default function Step4Pricing({
       pricing_tiers: isFree ? [] : pricingTiers,
     }));
     onNext();
-  }
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center space-x-2">
-        <Switch
-          id="free"
-          checked={isFree}
-          onCheckedChange={setIsFree}
-        />
+        <Switch id="free" checked={isFree} onCheckedChange={setIsFree} />
         <Label htmlFor="free">This software is free</Label>
       </div>
 
@@ -156,7 +167,9 @@ export default function Step4Pricing({
                   <Label>Tier Name</Label>
                   <Input
                     value={tier.tierName}
-                    onChange={(e) => handleTierChange(index, "tierName", e.target.value)}
+                    onChange={(e) =>
+                      handleTierChange(index, "tierName", e.target.value)
+                    }
                     placeholder="e.g., Basic, Pro, Enterprise"
                   />
                 </div>
@@ -169,9 +182,13 @@ export default function Step4Pricing({
                     <Input
                       type="number"
                       value={tier.price}
-                      onChange={(e) => handleTierChange(index, "price", e.target.value)}
+                      onChange={(e) =>
+                        handleTierChange(index, "price", Number(e.target.value))
+                      }
                       placeholder="e.g., 999"
                       className="pl-8"
+                      min="0" // Add minimum value
+                      step="0.01"
                     />
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
@@ -183,21 +200,26 @@ export default function Step4Pricing({
                     <Switch
                       id={`discount-${index}`}
                       checked={tier.isDiscounted}
-                      onCheckedChange={(checked) => handleTierChange(index, "isDiscounted", checked)}
+                      onCheckedChange={(checked) =>
+                        handleTierChange(index, "isDiscounted", checked)
+                      }
                     />
                     <Label htmlFor={`discount-${index}`}>Apply Discount</Label>
                   </div>
-                  
+
                   {tier.isDiscounted && (
                     <div className="flex items-center gap-2">
                       <Input
                         type="number"
                         value={tier.discount}
-                        onChange={(e) => handleTierChange(index, "discount", e.target.value)}
+                        onChange={(e) =>
+                          handleTierChange(index, "discount", e.target.value)
+                        }
                         placeholder="Discount %"
                         className="w-24"
                         min="0"
                         max="100"
+                        step="0.01"
                       />
                       <span className="text-sm text-gray-500">% off</span>
                     </div>
@@ -207,7 +229,9 @@ export default function Step4Pricing({
                   <Label>Duration</Label>
                   <select
                     value={tier.duration}
-                    onChange={(e) => handleTierChange(index, "duration", e.target.value)}
+                    onChange={(e) =>
+                      handleTierChange(index, "duration", e.target.value)
+                    }
                     className="flex border py-1.5 shadow-xs appearance-none w-full rounded-md px-2 text-sm"
                   >
                     <option value="">Select duration</option>
@@ -224,14 +248,21 @@ export default function Step4Pricing({
                     <Input
                       type="number"
                       value={tier.maxUsers === "unlimited" ? "" : tier.maxUsers}
-                      onChange={(e) => handleTierChange(index, "maxUsers", e.target.value)}
+                      onChange={(e) =>
+                        handleTierChange(index, "maxUsers", e.target.value)
+                      }
                       placeholder="Number of users"
                       className="flex-1"
+                      min={1}
                     />
                     <Button
                       type="button"
-                      variant={tier.maxUsers === "unlimited" ? "default" : "outline"}
-                      onClick={() => handleTierChange(index, "maxUsers", "unlimited")}
+                      variant={
+                        tier.maxUsers === "unlimited" ? "default" : "outline"
+                      }
+                      onClick={() =>
+                        handleTierChange(index, "maxUsers", "unlimited")
+                      }
                       className="whitespace-nowrap"
                     >
                       ∞
@@ -248,15 +279,23 @@ export default function Step4Pricing({
                       availableFeatures.map((feature) => (
                         <Badge
                           key={feature.value}
-                          variant={tier.features.includes(feature.value) ? "default" : "secondary"}
+                          variant={
+                            tier.features.includes(feature.value)
+                              ? "default"
+                              : "secondary"
+                          }
                           className="cursor-pointer"
-                          onClick={() => toggleFeatureInTier(index, feature.value)}
+                          onClick={() =>
+                            toggleFeatureInTier(index, feature.value)
+                          }
                         >
                           {feature.label}
                         </Badge>
                       ))
                     ) : (
-                      <p className="text-sm text-gray-400">No features available</p>
+                      <p className="text-sm text-gray-400">
+                        No features available
+                      </p>
                     )}
                   </div>
                 </ScrollArea>
@@ -284,5 +323,5 @@ export default function Step4Pricing({
         </Button>
       </div>
     </div>
-  )
+  );
 }
